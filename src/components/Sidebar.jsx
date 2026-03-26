@@ -101,7 +101,7 @@ export default function Sidebar() {
             />
           )}
 
-          {/* PROGRAM KEGIATAN */}
+       
           {isHO && isAkademik && (
             <Menu
               icon={<FolderKanban size={18} />}

@@ -8,7 +8,7 @@ import DashboardnonAkademik from "./page/nonAkademik/DashboardnonAkademik";
 import CreateAssessmentnonAkademik from "./page/nonAkademik/assnonakademik/CreateAssessmentnonAkademik";
 import DetailAssessmentNonAkademik from "./page/nonAkademik/assnonakademik/DetailAssessmentnonAkademik";
 import EditAssessmentNonAkademik from "./page/nonAkademik/assnonakademik/EditAssessmentnonAkademik";
-import OnBoardingNonAkademik from "./page/nonAkademik/OnboardingnonAkademik";
+import OnBoardingNonAkademik from "./page/nonAkademik/OnBoardingnonAkademik";
 import CreateProgramNonAkademik from "./page/nonAkademik/proNonAkademik/CreateProgramnonAkademik";
 import DetailProgramNonAkademik from "./page/nonAkademik/proNonAkademik/DetailProgramnonAkademik";
 import EditProgramNonAkademik from "./page/nonAkademik/proNonAkademik/EditProgramnonAkademik";

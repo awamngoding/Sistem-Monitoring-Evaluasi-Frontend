@@ -96,7 +96,7 @@ const Onboarding = () => {
   // ================= KONTEN PILAR =================
   const pilarList = [
     {
-      title: "Akademik",
+      title: "Akademik gesa",
       icon: iconPillar,
       description:
         "Meningkatkan kualitas pendidikan melalui berbagai program, salah satunya dengan memberikan pelatihan akademik untuk meningkatkan kompetensi sumber daya manusia (SDM) di lingkungan sekolah binaan.",

@@ -7,24 +7,31 @@ import Table from "../../components/Table";
 import Toggle from "../../components/Toggle";
 import Dropdown from "../../components/Dropdown";
 import { toast } from "react-toastify";
-
-import { useNavigate } from "react-router-dom";
-import { Eye, Pencil, Send } from "lucide-react";
-
+import { useNavigate, useLocation } from "react-router-dom"; 
+import { Eye, Pencil, Send, RefreshCcw } from "lucide-react"; 
 import { useState, useEffect } from "react";
 
-function DashboardAssessmentNonAkademik() {
+function DashboardNonAkademik() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // PENENTUAN MODE BERDASARKAN URL
+  // Jika URL mengandung "program", maka mode = program. Jika tidak (default dashboard), maka mode = assessment.
+  const isProgramMode = location.pathname.includes("/program/non-akademik");
+  const mode = isProgramMode ? "program" : "assessment";
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("aktif");
-  const [toggling, setToggling] = useState({});
-  const [assessments, setAssessments] = useState([]);
+  const [filterStatusProgram, setFilterStatusProgram] = useState("SEMUA");
+
+  const [dataList, setDataList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const limit = 10;
   const start = (page - 1) * limit;
-  const end = start + limit;
 
+  // --- HELPER ---
   const hitungRemaining = (sent_at, tenggat) => {
     if (!sent_at) return "-";
     const deadline = new Date(sent_at);
@@ -34,234 +41,212 @@ function DashboardAssessmentNonAkademik() {
     return diff > 0 ? `${diff} hari lagi` : "Tenggat habis";
   };
 
-  const filteredAssessments = assessments
-    .filter((item) => {
-      if (filterStatus === "aktif") return item.aktif;
-      if (filterStatus === "nonaktif") return !item.aktif;
-      return true;
-    })
-    .filter((item) =>
-      [item.nama, item.ho, item.sekolah]
-        .join(" ")
-        .toLowerCase()
-        .includes(search.toLowerCase()),
-    );
+  // --- FETCH DATA ---
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
 
-  useEffect(() => {
-    const fetchAssessments = async () => {
-      try {
-        const res = await fetch(
-          "http://localhost:3000/assessment?jenis=non-akademik",
-        );
+      if (mode === "assessment") {
+        const res = await fetch("http://localhost:3000/assessment?jenis=non-akademik", { headers });
         const data = await res.json();
-
-        const mapped = data.map((item) => ({
+        const mapped = Array.isArray(data) ? data.map((item) => ({
           id: item.id_assessment,
           nama: item.nama ?? "-",
           ho: item.ho ?? "-",
-          sekolah: item.sekolah ?? "-",
+          sekolah: item.nama_sekolah || item.sekolah || "-",
           jumlah_pengisi: item.jumlah_pengisi ?? 0,
           sent: item.status === "Proses Pengisian",
           sent_at: item.sent_at,
           tenggat: item.tenggat ?? 7,
           aktif: item.aktif ?? true,
-        }));
-
-        setAssessments(mapped);
-      } catch (err) {
-        console.error("Gagal mengambil assessment", err);
+        })) : [];
+        setDataList(mapped);
+      } else {
+        const res = await fetch("http://localhost:3000/program?kategori=NON_AKADEMIK&include_deleted=true", { headers });
+        const data = await res.json();
+        const mapped = Array.isArray(data) ? data.map((item) => ({
+          id: item.id_program,
+          nama: item.nama_program ?? "-",
+          sekolah: item.nama_sekolah || item.sekolah || "-", 
+          vendor: item.nama_vendor || item.vendor || "-",
+          tahun: item.tahun ?? "-",
+          status: item.status_program ?? "AKTIF",
+          is_deleted: item.is_deleted ?? false,
+        })) : [];
+        setDataList(mapped);
       }
-    };
+    } catch (err) {
+      console.error(`Gagal ambil data ${mode}`, err);
+      toast.error("Gagal memuat data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchAssessments();
-  }, []);
+  // Trigger fetch setiap kali URL (location.pathname) berubah
+  useEffect(() => {
+    fetchData();
+    setPage(1); 
+    setSearch(""); // Reset pencarian saat pindah menu
+  }, [location.pathname]);
 
-  const currentData = filteredAssessments.slice(start, end);
-  const totalPages = Math.ceil(filteredAssessments.length / limit);
-
-  const handleSend = async (id) => {
+  // --- ACTIONS ---
+  const handleToggleProgramStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === "AKTIF" ? "NONAKTIF" : "AKTIF";
     try {
-      const res = await fetch(`http://localhost:3000/assessment/${id}/send`, {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:3000/program/${id}`, {
         method: "PATCH",
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status_program: newStatus })
       });
 
-      if (!res.ok) throw new Error(`Status ${res.status}`);
-
-      setAssessments((prev) =>
-        prev.map((item) =>
-          item.id === id
-            ? { ...item, sent: true, sent_at: new Date().toISOString() }
-            : item,
-        ),
-      );
-
-      toast.success("Assessment berhasil dikirim ke sekolah!");
+      if (res.ok) {
+        toast.success(`Program sekarang ${newStatus}`);
+        setDataList((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
+      }
     } catch (err) {
-      console.error("Gagal mengirim assessment:", err);
-      toast.error("Gagal mengirim assessment");
+      toast.error("Gagal mengubah status");
     }
   };
 
-  const handleToggleAktif = async (id) => {
+  const handleRestoreProgram = async (id) => {
+    if (!window.confirm("Aktifkan kembali program ini?")) return;
     try {
-      if (toggling[id]) return;
-      setToggling((prev) => ({ ...prev, [id]: true }));
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:3000/program/${id}/restore`, {
+        method: "PATCH", 
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
 
-      const res = await fetch(
-        `http://localhost:3000/assessment/${id}/toggle-aktif`,
-        { method: "PATCH" },
-      );
-
-      if (!res.ok) throw new Error(`Status ${res.status}`);
-
-      setAssessments((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, aktif: !item.aktif } : item,
-        ),
-      );
+      if (res.ok) {
+        toast.success("Program berhasil dipulihkan!");
+        setDataList((prev) => prev.map((p) => (p.id === id ? { ...p, is_deleted: false } : p)));
+      }
     } catch (err) {
-      console.error("Gagal toggle aktif:", err);
-    } finally {
-      setToggling((prev) => ({ ...prev, [id]: false }));
+      toast.error("Gagal memulihkan program");
     }
   };
 
-  const filterOptions = [
-    { label: "Semua", value: "semua" },
-    { label: "Aktif", value: "aktif" },
-    { label: "Nonaktif", value: "nonaktif" },
+  // --- FILTER LOGIC ---
+  const filteredData = dataList
+    .filter((item) => {
+      if (mode === "program") {
+        if (filterStatusProgram === "TERHAPUS") return item.status === "DIBATALKAN" || item.is_deleted === true;
+        if (item.status === "DIBATALKAN" || item.is_deleted) return false;
+        if (filterStatusProgram === "SEMUA") return true;
+        return item.status === filterStatusProgram;
+      }
+      if (mode === "assessment") {
+        if (filterStatus === "aktif") return item.aktif;
+        if (filterStatus === "nonaktif") return !item.aktif;
+        return true;
+      }
+      return true;
+    })
+    .filter((item) => {
+      const searchString = mode === "assessment" 
+        ? [item.nama, item.ho, item.sekolah].join(" ").toLowerCase()
+        : [item.nama, item.sekolah, item.vendor].join(" ").toLowerCase();
+      return searchString.includes(search.toLowerCase());
+    });
+
+  const currentData = filteredData.slice(start, start + limit);
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / limit));
+
+  // --- COLUMNS CONFIG ---
+  const columns = mode === "assessment" ? [
+    { header: "No", align: "text-center", render: (p, idx) => start + idx + 1 },
+    { header: "Nama Assessment", accessor: "nama" },
+    { header: "Nama HO", accessor: "ho" },
+    { header: "Sekolah", accessor: "sekolah" },
+    { header: "Tenggat", align: "text-center", render: (row) => <span className="text-sm">{hitungRemaining(row.sent_at, row.tenggat)}</span> },
+    { header: "Aksi", align: "text-center", render: (row) => (
+        <div className="flex justify-center gap-2">
+          <Button icon={<Eye size={16} />} variant="ghost" className="text-amber-500 hover:bg-transparent shadow-none" onClick={() => navigate(`/ho/assessment/non-akademik/detail/${row.id}`)} />
+          <Button icon={<Pencil size={16} />} variant="ghost" className="text-yellow-500 hover:bg-transparent shadow-none" onClick={() => navigate(`/ho/assessment/non-akademik/edit/${row.id}`)} />
+          <Button icon={<Send size={16} />} variant="ghost" className="text-green-500 hover:bg-transparent shadow-none" />
+          <Toggle checked={row.aktif} onChange={() => {}} />
+        </div>
+      )
+    },
+  ] : [
+    { header: "No", align: "text-center", render: (p, idx) => start + idx + 1 },
+    { header: "Nama Program", accessor: "nama" },
+    { header: "Sekolah", accessor: "sekolah" },
+    { header: "Vendor", accessor: "vendor" },
+    { header: "Status", align: "text-center", render: (row) => (
+      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${row.status === 'AKTIF' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'}`}>
+        {row.status}
+      </span>) 
+    },
+    { header: "Aksi", align: "text-center", render: (row) => (
+      <div className="flex justify-center items-center gap-2">
+        <Button icon={<Eye size={16} />} variant="ghost" className="text-amber-500 hover:bg-transparent shadow-none" onClick={() => navigate(`/ho/program/non-akademik/detail/${row.id}`)} />
+        {!row.is_deleted && row.status !== "DIBATALKAN" ? (
+          <>
+            <Button icon={<Pencil size={16} />} variant="ghost" className="text-yellow-500 hover:bg-transparent shadow-none" onClick={() => navigate(`/ho/program/non-akademik/edit/${row.id}`)} />
+            <Toggle checked={row.status === "AKTIF"} onChange={() => handleToggleProgramStatus(row.id, row.status)} />
+          </>
+        ) : (
+          <Button icon={<RefreshCcw size={16} />} variant="ghost" className="text-blue-500 hover:bg-transparent shadow-none" onClick={() => handleRestoreProgram(row.id)} />
+        )}
+      </div>
+      )
+    },
   ];
 
   return (
     <div className="bg-gradient-to-b from-[#2E5AA7] to-[#4989C2] min-h-screen p-4 flex flex-col lg:flex-row gap-3">
       <Sidebar />
-
       <main className="flex-1 flex flex-col bg-[#F3F4F4] rounded-[25px] lg:rounded-[40px] px-10 pt-6 pb-9 overflow-auto">
-        <h1 className="text-xl font-semibold text-gray-500 mt-3 mb-4 text-center">
-          Riwayat Assessment
+        <h1 className="text-xl font-semibold text-gray-500 mt-3 mb-6">
+          {mode === "assessment" ? "Dashboard Assessment Non-Akademik" : "Program Kegiatan Non-Akademik"}
         </h1>
 
         <div className="flex flex-col h-full gap-4">
-          {/* HEADER ACTION */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-72">
-                <Search
-                  placeholder="Cari assessment..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+                <Search placeholder={`Cari ${mode === "assessment" ? "Assessment" : "Program"}...`} value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
               <div className="w-48">
-                <Dropdown
-                  label="Status"
-                  items={filterOptions}
-                  value={filterStatus}
-                  onChange={setFilterStatus}
+                <Dropdown 
+                  label="Filter Status" 
+                  items={mode === "assessment" 
+                    ? [{ label: "Semua", value: "semua" }, { label: "Aktif", value: "aktif" }, { label: "Nonaktif", value: "nonaktif" }] 
+                    : [{ label: "Semua", value: "SEMUA" }, { label: "Aktif", value: "AKTIF" }, { label: "Selesai", value: "SELESAI" }, { label: "Terhapus", value: "TERHAPUS" }]} 
+                  value={mode === "assessment" ? filterStatus : filterStatusProgram} 
+                  onChange={mode === "assessment" ? setFilterStatus : setFilterStatusProgram} 
                 />
               </div>
             </div>
-            <Button
-              text="+ Tambah Data"
-              onClick={() => navigate("/ho/assessment/non-akademik/create")}
-            />
+            <Button text={`+ Tambah ${mode === "assessment" ? "Assessment" : "Program"}`} onClick={() => navigate(`/ho/${mode}/non-akademik/create`)} />
           </div>
 
-          {/* TABLE */}
           <Card className="w-full bg-white/80 flex-1 rounded-xl shadow-md p-4">
-            <Table
-              columns={[
-                {
-                  header: "No",
-                  align: "text-center",
-                  render: (row, idx) => start + idx + 1,
-                },
-                { header: "Nama Assessment", accessor: "nama" },
-                { header: "Nama HO", accessor: "ho" },
-                { header: "Sekolah", accessor: "sekolah" },
-                {
-                  header: "Jumlah Pengisi",
-                  align: "text-center",
-                  render: (row) => (
-                    <span className="text-gray-600 text-sm">
-                      {row.jumlah_pengisi} orang
-                    </span>
-                  ),
-                },
-                {
-                  header: "Tenggat",
-                  align: "text-center",
-                  render: (row) => (
-                    <span className="text-gray-600 text-sm">
-                      {hitungRemaining(row.sent_at, row.tenggat)}
-                    </span>
-                  ),
-                },
-                {
-                  header: "Aksi",
-                  align: "text-center",
-                  render: (row) => (
-                    <div className="flex justify-center gap-2">
-                      <Button
-                        icon={<Eye size={16} />}
-                        variant="ghost"
-                        className="text-amber-500 hover:text-amber-600 hover:bg-transparent shadow-none"
-                        onClick={() =>
-                          navigate(
-                            `/ho/assessment/non-akademik/detail/${row.id}`,
-                          )
-                        }
-                      />
-                      {!row.sent && (
-                        <Button
-                          icon={<Pencil size={16} />}
-                          variant="ghost"
-                          className="text-yellow-500 hover:text-yellow-600 hover:bg-transparent shadow-none"
-                          onClick={() =>
-                            navigate(
-                              `/ho/assessment/non-akademik/edit/${row.id}`,
-                            )
-                          }
-                        />
-                      )}
-                      {!row.sent && (
-                        <Button
-                          icon={<Send size={16} />}
-                          variant="ghost"
-                          className="text-green-500 hover:text-green-600 hover:bg-transparent shadow-none"
-                          onClick={() => handleSend(row.id)}
-                        />
-                      )}
-                      <Toggle
-                        checked={row.aktif}
-                        onChange={() => handleToggleAktif(row.id)}
-                        disabled={toggling[row.id]}
-                      />
-                    </div>
-                  ),
-                },
-              ]}
-              data={currentData}
-            />
+            {loading ? (
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                </div>
+            ) : (
+                <Table columns={columns} data={currentData} />
+            )}
           </Card>
 
           {/* PAGINATION */}
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              text="◀ Prev"
-              variant="ghost"
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-            />
-            <span className="text-sm text-gray-600 font-medium">
-              {page} / {totalPages}
-            </span>
-            <Button
-              text="Next ▶"
-              variant="ghost"
-              disabled={page === totalPages}
-              onClick={() => setPage(page + 1)}
-            />
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <Button text="◀ Prev" variant="ghost" disabled={page <= 1} onClick={() => setPage(page - 1)} />
+            <span className="text-sm text-gray-600 font-medium">{page} / {totalPages}</span>
+            <Button text="Next ▶" variant="ghost" disabled={page >= totalPages} onClick={() => setPage(page + 1)} />
           </div>
         </div>
       </main>
@@ -269,4 +254,4 @@ function DashboardAssessmentNonAkademik() {
   );
 }
 
-export default DashboardAssessmentNonAkademik;
+export default DashboardNonAkademik;
