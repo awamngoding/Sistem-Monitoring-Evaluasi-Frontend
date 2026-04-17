@@ -5,6 +5,7 @@ export default function Input({
   value,
   onChange,
   className = "",
+  ...props // <--- Ini untuk menangkap prop tambahan seperti 'readOnly' atau 'name'
 }) {
   return (
     <input
@@ -12,6 +13,7 @@ export default function Input({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
+      {...props} // <--- Ini untuk menyalurkan prop tersebut ke tag input asli
       className={`
         w-full
         px-3 py-2

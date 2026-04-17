@@ -1,7 +1,7 @@
-/* eslint-disable no-unused-vars */
 import Sidebar from "../../components/Sidebar";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
+import PageWrapper from "../../components/PageWrapper";
 
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -21,9 +21,19 @@ function IsiAssessmentSekolah() {
   useEffect(() => {
     const fetchAssessment = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/assessment/${id}`);
+        const token = localStorage.getItem("token");
+        const res = await fetch(`http://localhost:3000/assessment/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = await res.json();
-        setAssessment(data);
+        if (!res.ok)
+          throw new Error(data?.message || "Gagal memuat assessment");
+        setAssessment({
+          ...data,
+          questions: Array.isArray(data.questions) ? data.questions : [],
+        });
       } catch (err) {
         console.error(err);
       } finally {
@@ -95,76 +105,90 @@ function IsiAssessmentSekolah() {
     );
 
   return (
-    <div className="bg-gradient-to-b from-[#2E5AA7] to-[#4989C2] min-h-screen p-4 flex flex-col lg:flex-row gap-3">
+    <PageWrapper className="h-screen bg-[#EEF5FF] flex overflow-hidden !p-0">
       <Sidebar />
-
-      <main className="flex-1 flex flex-col bg-[#F3F4F4] rounded-[25px] lg:rounded-[40px] px-10 pt-6 pb-9 overflow-auto">
-        <h1 className="text-xl font-semibold text-gray-500 mt-3 mb-4 text-center">
-          {assessment?.nama ?? "Isi Assessment"}
-        </h1>
-
-        <div className="flex flex-col gap-4">
-          {/* INPUT NAMA PENGISI */}
-          <Card className="bg-white rounded-xl shadow-md p-6 border-l-8 border-[#2E5AA7]">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-gray-700">
-                Nama Lengkap Pengisi (Guru){" "}
-                <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={namaPengisi}
-                onChange={(e) => setNamaPengisi(e.target.value)}
-                placeholder="Masukkan nama lengkap Anda..."
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#2E5AA7] outline-none transition"
-              />
-              <p className="text-[10px] text-gray-400 italic">
-                * Wajib diisi karena akun ini digunakan secara kolektif oleh
-                sekolah.
-              </p>
-            </div>
-          </Card>
-
-          {/* DAFTAR PERTANYAAN */}
-          {assessment?.questions.map((q, index) => (
-            <Card key={index} className="bg-white rounded-xl shadow-md p-6">
-              <p className="font-semibold text-gray-700 mb-4">
-                {index + 1}. {q.question}
-              </p>
-
-              <div className="grid grid-cols-2 gap-3">
-                {q.options.map((opt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleJawab(q.id_pertanyaan, opt)}
-                    className={`px-4 py-2 rounded-lg border text-left text-sm transition ${
-                      jawaban[q.id_pertanyaan] === opt
-                        ? "bg-[#2E5AA7] text-white border-[#2E5AA7]"
-                        : "bg-white text-gray-700 border-gray-300 hover:border-[#2E5AA7]"
-                    }`}
-                  >
-                    {String.fromCharCode(65 + i)}. {opt}
-                  </button>
-                ))}
+      <main className="flex-1 flex flex-col h-full overflow-hidden px-4 md:px-12 pt-6 md:pt-10 pb-0">
+        <Card className="flex-1 flex flex-col !m-0 !p-0 rounded-t-[2.5rem] rounded-b-[2.5rem] border-none shadow-2xl bg-white overflow-auto">
+          <div className="px-8 py-8">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.3em] text-[#1E5AA5] font-black mb-2">
+                    Isi Assessment Sekolah
+                  </p>
+                  <h1 className="text-3xl font-black text-gray-800">
+                    {assessment?.nama ?? "Isi Assessment"}
+                  </h1>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    text="← Kembali"
+                    variant="ghost"
+                    onClick={() => navigate("/sekolah/dashboard")}
+                    className="!rounded-xl"
+                  />
+                </div>
               </div>
-            </Card>
-          ))}
-        </div>
 
-        <div className="flex justify-between mt-6">
-          <Button
-            text="← Kembali"
-            variant="ghost"
-            onClick={() => navigate("/sekolah/dashboard")}
-          />
-          <Button
-            text={submitting ? "Mengirim..." : "Kirim Jawaban"}
-            onClick={handleSubmit}
-            disabled={submitting}
-          />
-        </div>
+              <Card className="bg-white rounded-[1.75rem] shadow-sm border border-gray-200 p-6">
+                <div className="flex flex-col gap-3">
+                  <label className="text-sm font-bold text-gray-700">
+                    Nama Lengkap Pengisi (Guru) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={namaPengisi}
+                    onChange={(e) => setNamaPengisi(e.target.value)}
+                    placeholder="Masukkan nama lengkap Anda..."
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#2E5AA7] outline-none transition"
+                  />
+                  <p className="text-[11px] text-gray-400 italic">
+                    * Wajib diisi karena akun ini digunakan secara kolektif oleh sekolah.
+                  </p>
+                </div>
+              </Card>
+
+              {assessment?.questions.map((q, index) => (
+                <Card key={index} className="bg-white rounded-[1.75rem] shadow-sm border border-gray-200 p-6">
+                  <p className="font-semibold text-gray-800 mb-5">
+                    {index + 1}. {q.question}
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {q.options.map((opt, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleJawab(q.id_pertanyaan, opt)}
+                        className={`w-full px-4 py-3 rounded-2xl border text-left text-sm font-semibold transition ${
+                          jawaban[q.id_pertanyaan] === opt
+                            ? "bg-[#2E5AA7] text-white border-[#2E5AA7]"
+                            : "bg-white text-gray-700 border-gray-200 hover:border-[#2E5AA7]"
+                        }`}
+                      >
+                        {String.fromCharCode(65 + i)}. {opt}
+                      </button>
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          <div className="px-8 pb-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-500">
+                Pastikan semua pertanyaan terjawab sebelum mengirim.
+              </div>
+              <Button
+                text={submitting ? "Mengirim..." : "Kirim Jawaban"}
+                onClick={handleSubmit}
+                disabled={submitting}
+              />
+            </div>
+          </div>
+        </Card>
       </main>
-    </div>
+    </PageWrapper>
   );
 }
 
