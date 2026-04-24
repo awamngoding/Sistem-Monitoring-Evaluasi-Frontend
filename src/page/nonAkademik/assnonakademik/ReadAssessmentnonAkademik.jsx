@@ -174,7 +174,10 @@ function ReadAssessmentnonAkademik() {
                     className="!text-[8px] !text-[#2E5AA7] !font-black tracking-[0.3em] !mb-1 uppercase"
                   />
                   <h1 className="text-xl font-black text-gray-800 tracking-tight uppercase leading-none">
-                    Riwayat <span className="text-[#2E5AA7]">Assessment Non-Akademik</span>
+                    Riwayat{" "}
+                    <span className="text-[#2E5AA7]">
+                      Assessment Non-Akademik
+                    </span>
                   </h1>
                 </div>
               </div>
@@ -189,7 +192,8 @@ function ReadAssessmentnonAkademik() {
 
             <div className="flex flex-row items-center gap-3">
               <div className="flex items-center gap-3 px-5 py-2.5 bg-blue-50 text-[#2E5AA7] rounded-xl border border-blue-100 font-black text-[9px] uppercase tracking-[0.2em] shrink-0">
-                <ClipboardCheck size={14} /> Total: {filteredAssessments.length} Assessment
+                <ClipboardCheck size={14} /> Total: {filteredAssessments.length}{" "}
+                Assessment
               </div>
               <div className="w-72">
                 <Search
@@ -230,6 +234,37 @@ function ReadAssessmentnonAkademik() {
                         {row.jumlah_pengisi} orang
                       </span>
                     ),
+                  },
+                  {
+                    header: "Sekolah Tujuan",
+                    accessor: "sekolah",
+                    render: (row) => {
+                      // Logic: Kita pecah string "Sekolah A, Sekolah B" menjadi array
+                      // Jika datanya "-", kita set jadi array kosong
+                      const daftarSekolah =
+                        row.sekolah && row.sekolah !== "-"
+                          ? row.sekolah.split(",")
+                          : [];
+
+                      return (
+                        <div className="flex flex-wrap gap-1 max-w-[220px]">
+                          {daftarSekolah.length > 0 ? (
+                            daftarSekolah.map((nama, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-0.5 bg-blue-50 text-[#2E5AA7] rounded-lg text-[9px] font-black border border-blue-100 uppercase tracking-tighter"
+                              >
+                                {nama.trim()}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 italic text-[10px]">
+                              Belum ada sekolah
+                            </span>
+                          )}
+                        </div>
+                      );
+                    },
                   },
                   {
                     header: "Tenggat",

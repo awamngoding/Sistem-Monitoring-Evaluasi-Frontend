@@ -14,6 +14,9 @@ import {
   ArrowLeft,
   BookOpen,
   ChevronDown,
+  ChevronRight,
+  PlusCircle,
+  ListChecks,
 } from "lucide-react";
 
 import Sidebar from "../../../components/Sidebar";
@@ -47,12 +50,17 @@ function CreateProgramnonAkademik() {
   const [deskripsi, setDeskripsi] = useState("");
   const [kpi, setKpi] = useState("");
   const [selectedVendor, setSelectedVendor] = useState("");
-  const [tahun, setTahun] = useState(new Date().getFullYear());
+const [tahun, setTahun] = useState(new Date().getFullYear());
   const [fileMou, setFileMou] = useState(null);
   const [openDrop, setOpenDrop] = useState(null);
-  const [kegiatan, setKegiatan] = useState([
+  const [kegiatan, setKubernetes] = useState([
     { nama_kegiatan: "", start_date: "", due_date: "" },
   ]);
+
+  const [fases, setFases] = useState([
+    { nama_fase: "", deskripsi: "", urutan: 1, kegiatans: [] },
+  ]);
+  const [expandedFase, setExpandedFase] = useState([true]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -132,9 +140,71 @@ function CreateProgramnonAkademik() {
     setKegiatan(updated);
   };
 
-  const saveProgram = async () => {
+  const addFase = () => {
+    const newFase = {
+      nama_fase: "",
+      deskripsi: "",
+      urutan: fases.length + 1,
+      kegiatans: [],
+    };
+    setFases([...fases, newFase]);
+    setExpandedFase([...expandedFase, false]);
+  };
+
+  const removeFase = (index) => {
+    const newFases = fases.filter((_, i) => i !== index);
+    setFases(newFases.map((f, i) => ({ ...f, urutan: i + 1 })));
+  };
+
+  const updateFase = (index, field, value) => {
+    const newFases = [...fases];
+    newFases[index][field] = value;
+    setFases(newFases);
+  };
+
+  const toggleFaseExpand = (index) => {
+    const newExpanded = [...expandedFase];
+    newExpanded[index] = !newExpanded[index];
+    setExpandedFase(newExpanded);
+  };
+
+  const addActivitiesToFase = (faseIndex) => {
+    const newFases = [...fases];
+    newFases[faseIndex].kegiatans.push({
+      nama_kegiatans: "",
+      deskripsi: "",
+      urutan: newFases[faseIndex].kegiatans.length + 1,
+    });
+    setFases(newFases);
+  };
+
+  const removeActivitiesFromFase = (faseIndex, kegIndex) => {
+    const newFases = [...fases];
+    newFases[faseIndex].kegiatans.splice(kegIndex, 1);
+    setFases(newFases.map((f) => ({
+      ...f,
+      kegiatans: f.kegiatans.map((k, i) => ({ ...k, urutan: i + 1 })),
+    })));
+  };
+
+  const updateActivities = (faseIndex, kegIndex, field, value) => {
+    const newFases = [...fases];
+    newFases[faseIndex].kegiatans[kegIndex][field] = value;
+    setFases(newFases);
+  };
+
+const saveProgram = async () => {
     if (!namaProgram || !selectedAO || !tahun || !fileMou) {
       return toast.error("Lengkapi data yang wajib diisi!");
+    }
+
+    const validFases = fases.filter(f => f.nama_fase.trim() !== "");
+    const hasValidKegiatans = validFases.some(f => 
+      f.kegiatans.some(k => k.nama_kegiatans.trim() !== "")
+    );
+    
+    if (validFases.length === 0 || !hasValidKegiatans) {
+      return toast.error("Tambahkan minimal 1 fase dengan 1 kegiatan!");
     }
 
     setLoading(true);
@@ -148,9 +218,20 @@ function CreateProgramnonAkademik() {
       formData.append("id_user_ao", selectedAO);
       formData.append("id_sekolah", selectedSekolah || null);
       formData.append("id_vendor", selectedVendor || null);
-      formData.append("kegiatan", JSON.stringify(kegiatan));
       formData.append("kategori", "NON_AKADEMIK");
       if (fileMou) formData.append("mou", fileMou);
+
+      const fasesData = validFases.map((f) => ({
+        nama_fase: f.nama_fase,
+        deskripsi: f.deskripsi || "",
+        urutan: f.urutan,
+        kegiatans: f.kegiatans.filter(k => k.nama_kegiatans.trim() !== "").map((k, i) => ({
+          nama_kegiatans: k.nama_kegiatans,
+          deskripsi: k.deskripsi || "",
+          urutan: i + 1,
+        })),
+      }));
+      formData.append("fases", JSON.stringify(fasesData));
 
       const r = await fetch("http://localhost:3000/program", {
         method: "POST",
@@ -556,6 +637,63 @@ function CreateProgramnonAkademik() {
                         />
                       </label>
                     </div>
+                  </div>
+                </div>
+
+                {/* Fase & Kegiatan */}
+                <div className="mt-8 space-y-6">
+                  <div className="flex items-center justify-between pb-3 border-b-2 border-blue-100">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-50 rounded-lg">
+                        <ListChecks size={20} className="text-purple-600" />
+                      </div>
+                      <h3 className="text-lg font-black text-gray-800 uppercase tracking-wide">
+                        Fase & Kegiatan Program
+                      </h3>
+                    </div>
+                    <Button
+                      text="Tambah Fase"
+                      icon={<PlusCircle size={14} />}
+                      onClick={addFase}
+                      className="!bg-purple-50 !text-purple-600 hover:!bg-purple-600 hover:!text-white !rounded-xl !px-4 !py-2 !text-[10px] font-black transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    {fases.map((fase, faseIndex) => (
+                      <div key={faseIndex} className="border border-gray-200 rounded-xl overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer" onClick={() => toggleFaseExpand(faseIndex)}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm">
+                              {faseIndex + 1}
+                            </div>
+                            <input type="text" placeholder={`Nama Fase ${faseIndex + 1}`} value={fase.nama_fase} onChange={(e) => updateFase(faseIndex, "nama_fase", e.target.value)} className="bg-transparent border-none font-black text-gray-800 placeholder-gray-400 focus:ring-0 w-48" />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button onClick={(e) => { e.stopPropagation(); removeFase(faseIndex); }} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
+                            <ChevronRight size={18} className={`text-gray-400 transition-transform ${expandedFase[faseIndex] ? "rotate-90" : ""}`} />
+                          </div>
+                        </div>
+
+                        {expandedFase[faseIndex] && (
+                          <div className="p-4 bg-white border-t border-gray-200 space-y-3">
+                            <div className="flex items-center justify-between pt-2">
+                              <h4 className="text-xs font-black text-gray-500 uppercase"> kegiatan ({fase.kegiatans.length})</h4>
+                              <button onClick={() => addActivitiesToFase(faseIndex)} className="text-xs font-black text-blue-600 hover:text-blue-700">+ Tambah Kegiatan</button>
+                            </div>
+                            <div className="space-y-2">
+                              {fase.kegiatans.map((keg, kegIndex) => (
+                                <div key={kegIndex} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                                  <div className="w-6 h-6 rounded-md bg-orange-500 text-white flex items-center justify-center font-black text-[10px]">{kegIndex + 1}</div>
+                                  <input type="text" placeholder={`Nama Kegiatan ${kegIndex + 1}`} value={keg.nama_kegiatans} onChange={(e) => updateActivities(faseIndex, kegIndex, "nama_kegiatans", e.target.value)} className="flex-1 bg-transparent border-none font-bold text-gray-700 placeholder-gray-400 focus:ring-0 text-sm" />
+                                  <button onClick={() => removeActivitiesFromFase(faseIndex, kegIndex)} className="text-red-400 hover:text-red-600"><Trash2 size={14} /></button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
 

@@ -185,7 +185,6 @@ const CreatePengurus = () => {
                         size={16}
                       />
                     </div> */}
-                  </div>
                 </div>
               </div>
               <div className="flex justify-end items-center gap-3 pt-12 pb-16 shrink-0">

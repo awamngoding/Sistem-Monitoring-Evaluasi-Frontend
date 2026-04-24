@@ -84,6 +84,7 @@ import DetailAssessmentAkademik from "./page/akademik/assakademik/DetailAssessme
 import EditAssessmentAkademik from "./page/akademik/assakademik/EditAssessmentAkademik";
 
 import ReadProgramAkademik from "./page/akademik/proAkademik/ReadProgramAkademik";
+import ListProgramAkademik from "./page/akademik/proAkademik/ListProgramAkademik";
 import CreateProgramAkademik from "./page/akademik/proAkademik/CreateProgramAkademik";
 import DetailProgramAkademik from "./page/akademik/proAkademik/DetailProgramAkademik";
 import EditProgramAkademik from "./page/akademik/proAkademik/EditProgramAkademik";
@@ -98,6 +99,7 @@ import DetailAssessmentNonAkademik from "./page/nonAkademik/assnonakademik/Detai
 import EditAssessmentNonAkademik from "./page/nonAkademik/assnonakademik/EditAssessmentnonAkademik";
 
 import ReadProgramNonAkademik from "./page/nonAkademik/proNonAkademik/ReadProgramnonAkademik";
+import ListProgramNonAkademik from "./page/nonAkademik/proNonAkademik/ListProgramnonAkademik";
 import CreateProgramNonAkademik from "./page/nonAkademik/proNonAkademik/CreateProgramnonAkademik";
 import DetailProgramNonAkademik from "./page/nonAkademik/proNonAkademik/DetailProgramnonAkademik";
 import EditProgramNonAkademik from "./page/nonAkademik/proNonAkademik/EditProgramnonAkademik";
@@ -195,6 +197,10 @@ function App() {
         />
         <Route path="/ho/program/akademik" element={<ReadProgramAkademik />} />
         <Route
+          path="/ho/program/akademik/list/:id"
+          element={<ListProgramAkademik />}
+        />
+        <Route
           path="/ho/program/akademik/create"
           element={<CreateProgramAkademik />}
         />
@@ -231,6 +237,10 @@ function App() {
         <Route
           path="/ho/program/non-akademik"
           element={<ReadProgramNonAkademik />}
+        />
+        <Route
+          path="/ho/program/non-akademik/list/:id"
+          element={<ListProgramNonAkademik />}
         />
         <Route
           path="/ho/program/non-akademik/create"

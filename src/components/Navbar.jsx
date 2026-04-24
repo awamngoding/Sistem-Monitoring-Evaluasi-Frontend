@@ -12,7 +12,7 @@ const Navbar = ({
   isDashboard = false,
   // 👇 INI KUNCINYA: Harus didefinisikan di sini dengan nilai default
   searchValue = "",
-  onSearchChange = () => {},
+  onSearchChange = () => { },
 }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);

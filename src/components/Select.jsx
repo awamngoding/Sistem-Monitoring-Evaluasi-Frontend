@@ -15,8 +15,8 @@ const Select = ({
   return (
     <div className={`relative group min-w-[160px] ${className}`}>
       {/* Icon Utama di Sisi Kiri (Opsional) */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#2E5AA7] transition-colors duration-300">
-        {Icon && <Icon size={14} strokeWidth={3} />}
+      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1E5AA5] transition-colors duration-200 pointer-events-none">
+        {Icon && <Icon size={16} strokeWidth={2} />}
       </div>
 
       <select
@@ -26,41 +26,39 @@ const Select = ({
         required={required}
         className={`
           w-full 
-          ${Icon ? "pl-11" : "pl-5"} pr-10 py-2.5 
-          bg-gray-50/80 
-          border border-gray-200/50
+          ${Icon ? "pl-10" : "pl-4"} pr-10 py-2.5 
+          bg-white hover:bg-gray-50/50
+          border border-gray-200
           rounded-xl 
-          font-black 
-          text-[10px] 
-          tracking-wider
-          text-gray-600 
+          font-medium 
+          text-[13px] 
+          text-gray-700 
           outline-none 
           cursor-pointer
-          transition-all duration-300
+          transition-all duration-200
           appearance-none
-          /* Efek Inner Shadow halus agar senada dengan button */
-          shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]
+          shadow-sm shadow-gray-200/50
           focus:bg-white 
-          focus:border-[#2E5AA7]/30 
-          focus:ring-4 
-          focus:ring-[#2E5AA7]/5
+          focus:border-[#1E5AA5]
+          focus:ring-[3px] 
+          focus:ring-[#1E5AA5]/10
         `}
       >
         {placeholder && (
-          <option value="" className="font-bold">
-            {placeholder.toUpperCase()}
+          <option value="" disabled hidden>
+            {placeholder}
           </option>
         )}
         {options.map((opt) => (
-          <option key={opt.id} value={opt.id} className="font-bold py-2">
-            {opt.label.toUpperCase()}
+          <option key={opt.id} value={opt.id} className="text-gray-700 font-medium">
+            {opt.label}
           </option>
         ))}
       </select>
 
       {/* Chevron Icon Sisi Kanan */}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-300 group-hover:text-gray-400 transition-colors">
-        <ChevronDown size={14} strokeWidth={3} />
+      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-[#1E5AA5] group-focus-within:text-[#1E5AA5] transition-colors duration-200">
+        <ChevronDown size={16} strokeWidth={2} className="group-focus-within:rotate-180 transition-transform duration-300" />
       </div>
     </div>
   );

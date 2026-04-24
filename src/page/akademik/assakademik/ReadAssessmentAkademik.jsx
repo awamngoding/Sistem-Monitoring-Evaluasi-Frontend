@@ -174,7 +174,8 @@ function ReadAssessmentAkademik() {
                     className="!text-[8px] !text-[#1E5AA5] !font-black tracking-[0.3em] !mb-1 uppercase"
                   />
                   <h1 className="text-xl font-black text-gray-800 tracking-tight uppercase leading-none">
-                    Riwayat <span className="text-[#2E5AA7]">Assessment Akademik</span>
+                    Riwayat{" "}
+                    <span className="text-[#2E5AA7]">Assessment Akademik</span>
                   </h1>
                 </div>
               </div>
@@ -189,7 +190,8 @@ function ReadAssessmentAkademik() {
 
             <div className="flex flex-row items-center gap-3">
               <div className="flex items-center gap-3 px-5 py-2.5 bg-blue-50 text-[#1E5AA5] rounded-xl border border-blue-100 font-black text-[9px] uppercase tracking-[0.2em] shrink-0">
-                <ClipboardCheck size={14} /> Total: {filteredAssessments.length} Assessment
+                <ClipboardCheck size={14} /> Total: {filteredAssessments.length}{" "}
+                Assessment
               </div>
               <div className="w-72">
                 <Search
@@ -233,6 +235,36 @@ function ReadAssessmentAkademik() {
                 { header: "Nama HO", accessor: "ho" },
                 { header: "Sekolah", accessor: "sekolah" },
                 {
+                  header: "Sekolah Tujuan",
+                  accessor: "sekolah", // Ini mengambil properti 'sekolah' dari mapped
+                  render: (row) => {
+                    // Karena array material, biasanya datanya string dipisah koma (ex: "SDN 1, SDN 2")
+                    const daftarSekolah =
+                      row.sekolah && row.sekolah !== "-"
+                        ? row.sekolah.split(",")
+                        : [];
+
+                    return (
+                      <div className="flex flex-wrap gap-1 max-w-[200px]">
+                        {daftarSekolah.length > 0 ? (
+                          daftarSekolah.map((nama, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 bg-blue-50 text-[#1E5AA5] rounded-lg text-[9px] font-black border border-blue-100 uppercase tracking-tighter"
+                            >
+                              {nama.trim()}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-400 italic text-[10px]">
+                            Tidak ada sekolah
+                          </span>
+                        )}
+                      </div>
+                    );
+                  },
+                },
+                {
                   header: "Jumlah Pengisi",
                   align: "text-center",
                   render: (row) => (
@@ -248,7 +280,9 @@ function ReadAssessmentAkademik() {
                     <span
                       className={`text-xs font-bold ${row.sent_at ? "text-blue-600" : "text-gray-400"}`}
                     >
-                      {row.sent_at ? hitungRemaining(row.sent_at, row.tenggat) : `${row.tenggat} hari`}
+                      {row.sent_at
+                        ? hitungRemaining(row.sent_at, row.tenggat)
+                        : `${row.tenggat} hari`}
                     </span>
                   ),
                 },
