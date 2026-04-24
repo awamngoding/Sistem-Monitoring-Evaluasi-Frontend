@@ -1,6 +1,8 @@
+/* eslint-disable react/jsx-no-undef */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import axios from "axios";
 import {
   MapContainer,
@@ -35,13 +37,16 @@ import {
   School,
   GraduationCap,
   Layers,
+  ArrowUpRight,
 } from "lucide-react";
 
-// IMPORT COMPONENTS (Sesuai spill komponen atomik bos)
+// IMPORT COMPONENTS ATOMIK
 import Navbar from "../../components/Navbar";
 import Dropdown from "../../components/Dropdown";
 import Footer from "../../components/Footer";
 import Table from "../../components/Table";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
 
 // ASSETS
 import seniImg from "../../assets/img/senibudaya.jpg";
@@ -78,7 +83,6 @@ const Onboarding = () => {
           axios.get("http://localhost:3000/wilayah"),
           axios.get("http://localhost:3000/sekolah"),
         ]);
-        // Hanya wilayah aktif
         setWilayahList(resWilayah.data.filter((w) => w.status === true));
         setSekolahList(resSekolah.data);
       } catch (err) {
@@ -90,7 +94,7 @@ const Onboarding = () => {
     fetchData();
   }, []);
 
-  // Filter Sekolah berdasarkan Wilayah yang dipilih di peta/dropdown
+  // Filter Sekolah
   const filteredSekolah = selectedWilayah
     ? sekolahList.filter((s) => s.id_wilayah === selectedWilayah.id_wilayah)
     : [];
@@ -101,7 +105,7 @@ const Onboarding = () => {
   const currentItems = filteredSekolah.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredSekolah.length / itemsPerPage);
 
-  // Options untuk Dropdown Wilayah (Quick Navigation)
+  // Options Dropdown
   const wilayahOptions = [
     { value: "all", label: "PILIH WILAYAH BINAAN" },
     ...wilayahList.map((w) => ({
@@ -118,7 +122,7 @@ const Onboarding = () => {
     return null;
   }
 
-  // Kolom Tabel Sekolah (Minimalist Luxury)
+  // Kolom Tabel Sekolah
   const schoolColumns = [
     {
       header: "NPSN",
@@ -152,10 +156,69 @@ const Onboarding = () => {
       header: "INFO",
       align: "text-right w-12",
       render: (row) => (
-        <button className="p-1.5 hover:bg-blue-50 text-[#1E5AA5] rounded-lg transition-all">
-          <ArrowRight size={12} />
-        </button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-1.5 hover:bg-blue-50 text-[#1E5AA5] rounded-lg"
+          icon={<ArrowRight size={12} />}
+        />
       ),
+    },
+  ];
+
+  // Data 4 Pilar
+  const pillarsData = [
+    {
+      title: "Akademik",
+      icon: <BookOpen size={28} />,
+      description:
+        "Meningkatkan kualitas pendidikan melalui berbagai program, salah satunya dengan memberikan pelatihan akademik untuk meningkatkan kompetensi sumber daya manusia (SDM) di lingkungan sekolah binaan.",
+    },
+    {
+      title: "Karakter",
+      icon: <ShieldCheck size={28} />,
+      description:
+        "Warga sekolah diberikan pembinaan untuk mengembangkan karakter yang berlandaskan nilai-nilai luhur bangsa Indonesia.",
+    },
+    {
+      title: "Kecakapan Hidup",
+      icon: <Activity size={28} />,
+      description:
+        "Siswa dibekali dengan kecakapan hidup agar dapat meningkatkan perekonomian di daerahnya.",
+    },
+    {
+      title: "Seni Budaya",
+      icon: <Globe size={28} />,
+      description:
+        "Pembinaan seni budaya diberikan agar seni budaya lokal dapat dilestarikan.",
+    },
+  ];
+
+  // Data Manifesto
+  const manifestoData = [
+    {
+      title: "Vision",
+      icon: <Eye size={24} />,
+      description:
+        "Menjadi lembaga sosial yang kredibel untuk meningkatkan mutu elemen pendidikan daerah binaan.",
+    },
+    {
+      title: "Mission",
+      icon: <Rocket size={24} />,
+      description:
+        "Mendorong pembinaan sekolah melalui 4 Pilar Pendidikan dan membangun sinergitas stakeholders.",
+    },
+    {
+      title: "Goal",
+      icon: <Mountain size={24} />,
+      description:
+        "Mewujudkan sekolah unggul binaan yang mandiri, berprestasi, dan berwawasan global.",
+    },
+    {
+      title: "Aim",
+      icon: <Target size={24} />,
+      description:
+        "Melahirkan generasi muda yang kompeten untuk mewujudkan Indonesia yang lebih sejahtera.",
     },
   ];
 
@@ -187,9 +250,14 @@ const Onboarding = () => {
               mewujudkan generasi emas Indonesia yang mandiri.
             </p>
             <div className="flex items-center gap-6">
-              <button className="bg-[#1E5AA5] text-white px-8 py-4 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center gap-3 shadow-xl shadow-blue-900/20 active:scale-95">
-                Eksplorasi Wilayah <MoveRight size={16} />
-              </button>
+              <Button
+                onClick={() =>
+                  window.open("https://yayasanastra-ypamdr.or.id/", "_blank")
+                }
+                text="Jelajahi Yayasan Pendidikan Astra Michael D. Ruslim YUK!"
+                icon={<MoveRight size={16} />} // Masukkan icon ke prop icon
+                className="bg-[#1E5AA5] text-white px-8 py-4 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-[#164786] shadow-xl shadow-blue-900/20 active:scale-95"
+              />
             </div>
           </div>
           <div className="hidden lg:flex justify-end animate-in fade-in zoom-in duration-1000">
@@ -206,49 +274,79 @@ const Onboarding = () => {
       </section>
 
       {/* --- SECTION 2: 4 PILAR --- */}
-      <section className="py-28 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
-          {[
-            {
-              t: "Akademik",
-              i: <BookOpen size={28} />,
-              c: "Transformasi kualitas pedagogik dan kompetensi guru binaan.",
-            },
-            {
-              t: "Karakter",
-              i: <ShieldCheck size={28} />,
-              c: "Penanaman budi pekerti luhur berbasis nilai kebangsaan.",
-            },
-            {
-              t: "Kecakapan",
-              i: <Activity size={28} />,
-              c: "Pengembangan vokasi untuk kemandirian ekonomi lokal.",
-            },
-            {
-              t: "Budaya",
-              i: <Globe size={28} />,
-              c: "Pelestarian identitas nusantara di tengah arus globalisasi.",
-            },
-          ].map((p, i) => (
-            <div
-              key={i}
-              className="group flex flex-col items-center text-center"
-            >
-              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-[#1E5AA5] group-hover:bg-[#1E5AA5] group-hover:text-white transition-all duration-500 mb-8 shadow-sm">
-                {p.i}
-              </div>
-              <h3 className="text-base font-[1000] text-gray-900 uppercase tracking-tighter mb-3">
-                {p.t}
-              </h3>
-              <p className="text-gray-400 text-xs leading-relaxed max-w-[200px] font-medium">
-                {p.c}
-              </p>
+      <section className="py-32 px-6 bg-gradient-to-b from-white to-gray-50/30">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <div className="w-10 h-px bg-[#1E5AA5]/30" />
+              <span className="text-[10px] font-bold text-[#1E5AA5] tracking-[0.3em] uppercase">
+                4 Pilar Utama
+              </span>
+              <div className="w-10 h-px bg-[#1E5AA5]/30" />
             </div>
-          ))}
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+              Fondasi Transformasi Pendidikan
+            </h2>
+            <p className="text-gray-400 text-sm max-w-2xl mx-auto">
+              YPA-MDR berkomitmen membangun pendidikan Indonesia melalui empat
+              pilar utama yang saling terintegrasi
+            </p>
+          </div>
+
+          {/* 4 Pilar Grid menggunakan Card component */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {pillarsData.map((pillar, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="group relative"
+              >
+                <Card
+                  className="relative bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+                  padding="none"
+                >
+                  {/* Icon Container */}
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-[#1E5AA5]/5 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
+                    <div className="relative w-16 h-16 bg-gradient-to-br from-[#1E5AA5]/10 to-[#1E5AA5]/5 rounded-2xl flex items-center justify-center text-[#1E5AA5] group-hover:bg-[#1E5AA5] group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-lg">
+                      {pillar.icon}
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">
+                    {pillar.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-gray-400 text-xs leading-relaxed mb-6 font-medium line-clamp-4">
+                    {pillar.description}
+                  </p>
+
+                  {/* Separator */}
+                  <div className="w-12 h-px bg-gray-200 group-hover:w-full group-hover:bg-[#1E5AA5] transition-all duration-500 mb-6" />
+
+                  {/* Stats */}
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-[#1E5AA5]">
+                      {pillar.stat}
+                    </span>
+                    <span className="text-[9px] text-gray-400 uppercase tracking-wider">
+                      {pillar.statLabel}
+                    </span>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* --- SECTION 3: DASHBOARD GEOSPATIAL (MAP & SCHOOLS) --- */}
+      {/* --- SECTION 3: DASHBOARD GEOSPATIAL --- */}
       <section className="py-32 px-6 bg-[#EEF5FF]">
         <div className="max-w-7xl mx-auto flex flex-col items-center">
           <div className="text-center mb-16 space-y-3">
@@ -396,24 +494,26 @@ const Onboarding = () => {
                       Page {currentPage} of {totalPages}
                     </span>
                     <div className="flex gap-2">
-                      <button
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() =>
                           setCurrentPage((p) => Math.max(p - 1, 1))
                         }
                         disabled={currentPage === 1}
-                        className="p-2 border border-gray-100 rounded-lg hover:bg-gray-50 disabled:opacity-30 transition-all"
-                      >
-                        <ChevronLeft size={14} />
-                      </button>
-                      <button
+                        className="p-2 border border-gray-100 rounded-lg hover:bg-gray-50 disabled:opacity-30"
+                        icon={<ChevronLeft size={14} />}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() =>
                           setCurrentPage((p) => Math.min(p + 1, totalPages))
                         }
                         disabled={currentPage === totalPages}
-                        className="p-2 border border-gray-100 rounded-lg hover:bg-gray-50 disabled:opacity-30 transition-all"
-                      >
-                        <ChevronRight size={14} />
-                      </button>
+                        className="p-2 border border-gray-100 rounded-lg hover:bg-gray-50 disabled:opacity-30"
+                        icon={<ChevronRight size={14} />}
+                      />
                     </div>
                   </div>
                 )}
@@ -440,26 +540,34 @@ const Onboarding = () => {
             {[1, 2, 3, 4, 5, 6].map((_, i) => (
               <div
                 key={i}
-                className="min-w-[280px] h-[380px] relative group snap-center overflow-hidden bg-gray-100 rounded-[2rem] shadow-sm transition-all duration-700"
+                className="relative min-w-[280px] w-80 h-[420px] group snap-center overflow-hidden rounded-2xl shadow-lg bg-gray-100 flex-shrink-0"
               >
+                {/* GAMBAR - full cover, tidak kepotong */}
                 <img
                   src={seniImg}
-                  alt="Culture"
-                  className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110"
+                  alt="Budaya"
+                  className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="absolute inset-x-6 bottom-6 translate-y-6 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100">
-                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl">
-                    <span className="text-[8px] font-black text-blue-300 uppercase tracking-[0.3em] mb-2 block">
+                {/* Overlay gelap biar teks kebaca */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+                {/* Konten teks di atas gambar */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <div className="mb-2">
+                    <span className="text-[10px] font-bold text-blue-300 uppercase tracking-wider bg-black/30 px-2 py-0.5 rounded-full">
                       CULTURAL PRESERVATION
                     </span>
-                    <h4 className="text-sm font-black text-white uppercase tracking-tight mb-4">
-                      Gelar Seni Budaya Nusantara {i + 1}
-                    </h4>
-                    <button className="flex items-center gap-2 text-[8px] font-black text-white uppercase tracking-[0.2em] hover:text-blue-300 transition-colors">
-                      Eksplorasi Karya <ArrowRight size={12} />
-                    </button>
                   </div>
+                  <h4 className="text-lg font-black uppercase tracking-tight mb-2">
+                    Gelar Seni Budaya Nusantara {i + 1}
+                  </h4>
+                  <button className="flex items-center gap-2 text-[10px] font-bold text-white/80 hover:text-white transition group/btn">
+                    Eksplorasi Karya
+                    <ArrowRight
+                      size={14}
+                      className="group-hover/btn:translate-x-1 transition"
+                    />
+                  </button>
                 </div>
               </div>
             ))}
@@ -471,42 +579,22 @@ const Onboarding = () => {
       <section className="py-32 bg-[#F7F8F0] px-6">
         <div className="max-w-7xl mx-auto border-y border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200">
-            {[
-              {
-                t: "Vision",
-                i: <Eye size={24} />,
-                c: "Menjadi lembaga sosial yang kredibel untuk meningkatkan mutu elemen pendidikan daerah binaan.",
-              },
-              {
-                t: "Mission",
-                i: <Rocket size={24} />,
-                c: "Mendorong pembinaan sekolah melalui 4 Pilar Pendidikan dan membangun sinergitas stakeholders.",
-              },
-              {
-                t: "Goal",
-                i: <Mountain size={24} />,
-                c: "Mewujudkan sekolah unggul binaan yang mandiri, berprestasi, dan berwawasan global.",
-              },
-              {
-                t: "Aim",
-                i: <Target size={24} />,
-                c: "Melahirkan generasi muda yang kompeten untuk mewujudkan Indonesia yang lebih sejahtera.",
-              },
-            ].map((m, idx) => (
-              <div
+            {manifestoData.map((item, idx) => (
+              <Card
                 key={idx}
-                className="p-12 space-y-8 hover:bg-white transition-all duration-500 group"
+                className="p-12 space-y-8 hover:bg-white transition-all duration-500 group rounded-none shadow-none border-0"
+                padding="none"
               >
                 <div className="text-[#1E5AA5] group-hover:scale-125 transition-transform duration-500">
-                  {m.i}
+                  {item.icon}
                 </div>
                 <h3 className="text-xl font-[1000] text-gray-900 uppercase tracking-tighter">
-                  {m.t}
+                  {item.title}
                 </h3>
                 <p className="text-xs leading-relaxed text-gray-400 font-bold uppercase tracking-wide italic">
-                  {m.c}
+                  {item.description}
                 </p>
-              </div>
+              </Card>
             ))}
           </div>
         </div>

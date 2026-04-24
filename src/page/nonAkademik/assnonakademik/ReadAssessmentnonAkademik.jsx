@@ -75,7 +75,7 @@ function ReadAssessmentnonAkademik() {
           id: item.id_assessment,
           nama: item.nama ?? "-",
           ho: item.ho ?? "-",
-          sekolah: item.sekolah ?? "-",
+          sekolah: item.daftar_sekolah ?? "-",
           jumlah_pengisi: item.jumlah_pengisi ?? item.jumlah_guru_mengisi ?? 0,
           sent: item.status === "Proses Pengisian",
           sent_at: item.sent_at,
@@ -225,7 +225,6 @@ function ReadAssessmentnonAkademik() {
                   },
                   { header: "Nama Assessment", accessor: "nama" },
                   { header: "Nama HO", accessor: "ho" },
-                  { header: "Sekolah", accessor: "sekolah" },
                   {
                     header: "Jumlah Pengisi",
                     align: "text-center",
@@ -236,7 +235,7 @@ function ReadAssessmentnonAkademik() {
                     ),
                   },
                   {
-                    header: "Sekolah Tujuan",
+                    header: "Nama Sekolah",
                     accessor: "sekolah",
                     render: (row) => {
                       // Logic: Kita pecah string "Sekolah A, Sekolah B" menjadi array

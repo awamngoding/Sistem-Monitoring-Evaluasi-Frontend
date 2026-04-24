@@ -21,97 +21,98 @@ import {
   Target,
   FileText,
   Trash2,
-  ArrowDown,
   ListChecks,
   ChevronRight,
+  UserCheck,
+  BarChart3,
+  Calendar,
+  DollarSign,
+  X,
 } from "lucide-react";
 
 function CreateProgramAkademik() {
   const navigate = useNavigate();
 
-  // State Mode & UI
-  const [isTemplateMode, setIsTemplateMode] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  // Data List
+  // --- 1. STATE DATA REFERENSI ---
   const [sekolahList, setSekolahList] = useState([]);
   const [vendorList, setVendorList] = useState([]);
   const [aoList, setAoList] = useState([]);
-  const [templateList, setTemplateList] = useState([]);
+  const [hoList, setHoList] = useState([]);
 
-  // Form State
-  const [namaHO, setNamaHO] = useState("");
+  // --- 2. STATE FORM ---
+  const [loading, setLoading] = useState(false);
   const [wilayahInfo, setWilayahInfo] = useState({ kota: "", provinsi: "" });
   const [selectedSekolah, setSelectedSekolah] = useState(null);
-  const [selectedVendor, setSelectedVendor] = useState(null);
   const [selectedAO, setSelectedAO] = useState(null);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedHO, setSelectedHO] = useState(null);
+  const [selectedVendors, setSelectedVendors] = useState([]);
+  const [hargaVendor, setHargaVendor] = useState("");
   const [namaProgram, setNamaProgram] = useState("");
+  const [kpi, setKpi] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
   const [tahun, setTahun] = useState(new Date().getFullYear());
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [fileMou, setFileMou] = useState(null);
 
-  // Fase & Kegiatan State
+  // --- 3. STATE FASE & KEGIATAN ---
   const [fases, setFases] = useState([
     { nama_fase: "", deskripsi: "", urutan: 1, kegiatans: [] },
   ]);
   const [expandedFase, setExpandedFase] = useState([true]);
+  const [openDrop, setOpenDrop] = useState(null);
 
-  // Dropdown States
-  const [openDrop, setOpenDrop] = useState(null); // 'sekolah', 'ao', 'vendor', 'template'
-
+  // --- 4. FETCH DATA ---
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
         const headers = { Authorization: `Bearer ${token}` };
-        if (token) {
-          const decoded = jwtDecode(token);
-          setNamaHO(decoded.nama || "Head Office");
-        }
-        const [resSek, resAo, resVen, resTem] = await Promise.all([
+        const [resSek, resAo, resHo, resVen] = await Promise.all([
           fetch("http://localhost:3000/sekolah", { headers }),
           fetch("http://localhost:3000/users/ao", { headers }),
+          fetch("http://localhost:3000/users/ho", { headers }),
           fetch("http://localhost:3000/vendor", { headers }),
-          fetch("http://localhost:3000/program?kategori=AKADEMIK", { headers }),
         ]);
-        setSekolahList(await resSek.json());
-        setAoList(await resAo.json());
-        setVendorList(await resVen.json());
-        setTemplateList(await resTem.json());
+        const dSek = await resSek.json();
+        const dAo = await resAo.json();
+        const dHo = await resHo.json();
+        const dVen = await resVen.json();
+
+        setSekolahList(Array.isArray(dSek) ? dSek : dSek.data || []);
+        setAoList(Array.isArray(dAo) ? dAo : dAo.data || []);
+        setHoList(Array.isArray(dHo) ? dHo : dHo.data || []);
+        setVendorList(Array.isArray(dVen) ? dVen : dVen.data || []);
       } catch (err) {
-        console.error(err);
+        console.error("Gagal sinkronisasi data");
       }
     };
     fetchData();
   }, []);
 
+  // --- 5. SEMUA FUNGSI (PENTING: Jangan dipindah keluar dari sini) ---
   const handleSekolahSelect = (id) => {
     setSelectedSekolah(id);
     setOpenDrop(null);
     const s = sekolahList.find((i) => i.id_sekolah === id);
     if (s)
       setWilayahInfo({
-        kota: s.wilayah?.nama_wilayah,
-        provinsi: s.wilayah?.parent?.nama_wilayah,
+        kota: s.wilayah?.nama_wilayah || s.nama_wilayah || "-",
+        provinsi: s.wilayah?.parent?.nama_wilayah || s.nama_provinsi || "-",
       });
   };
 
   const addFase = () => {
-    const newFase = {
-      nama_fase: "",
-      deskripsi: "",
-      urutan: fases.length + 1,
-      kegiatans: [],
-    };
-    setFases([...fases, newFase]);
-    setExpandedFase([...expandedFase, false]);
+    setFases([
+      ...fases,
+      { nama_fase: "", deskripsi: "", urutan: fases.length + 1, kegiatans: [] },
+    ]);
+    setExpandedFase([...expandedFase, true]);
   };
 
   const removeFase = (index) => {
     const newFases = fases.filter((_, i) => i !== index);
     setFases(newFases.map((f, i) => ({ ...f, urutan: i + 1 })));
+    setExpandedFase(expandedFase.filter((_, i) => i !== index));
   };
 
   const updateFase = (index, field, value) => {
@@ -139,10 +140,10 @@ function CreateProgramAkademik() {
   const removeActivitiesFromFase = (faseIndex, kegIndex) => {
     const newFases = [...fases];
     newFases[faseIndex].kegiatans.splice(kegIndex, 1);
-    setFases(newFases.map((f) => ({
-      ...f,
-      kegiatans: f.kegiatans.map((k, i) => ({ ...k, urutan: i + 1 })),
-    })));
+    newFases[faseIndex].kegiatans = newFases[faseIndex].kegiatans.map(
+      (k, i) => ({ ...k, urutan: i + 1 }),
+    );
+    setFases([...newFases]);
   };
 
   const updateActivities = (faseIndex, kegIndex, field, value) => {
@@ -152,545 +153,495 @@ function CreateProgramAkademik() {
   };
 
   const saveProgram = async () => {
-    if (!selectedSekolah || !selectedAO || !namaProgram.trim() || !fileMou)
-      return toast.error("Lengkapi data yang wajib diisi!");
+    // 1. Validasi Input Dasar - Pastikan semua yang wajib sudah terisi
+    if (
+      !selectedSekolah ||
+      !selectedHO ||
+      !selectedAO ||
+      !namaProgram.trim() ||
+      !fileMou
+    ) {
+      return toast.error(
+        "Lengkapi data wajib: Sekolah, Personel (HO & AO), Nama Program, dan berkas MOU.",
+      );
+    }
 
-    const validFases = fases.filter(f => f.nama_fase.trim() !== "");
-    const hasValidKegiatans = validFases.some(f => 
-      f.kegiatans.some(k => k.nama_kegiatans.trim() !== "")
-    );
-    
-    if (validFases.length === 0 || !hasValidKegiatans) {
-      return toast.error("Tambahkan minimal 1 fase dengan 1 kegiatan!");
+    // 2. Filter Tahapan (Hanya kirim fase yang ada namanya)
+    const validFases = fases
+      .filter((f) => f.nama_fase && f.nama_fase.trim() !== "")
+      .map((f, i) => ({
+        ...f,
+        urutan: i + 1,
+        kegiatans: f.kegiatans.filter(
+          (k) => k.nama_kegiatans && k.nama_kegiatans.trim() !== "",
+        ),
+      }));
+
+    if (validFases.length === 0) {
+      return toast.error(
+        "Tambahkan minimal 1 Tahapan Program dengan nama yang jelas.",
+      );
     }
 
     setLoading(true);
-    const formData = new FormData();
-    formData.append("nama_program", namaProgram);
-    formData.append("deskripsi", deskripsi || "");
-    formData.append("id_sekolah", String(selectedSekolah));
-    formData.append("id_pengawas", String(selectedAO));
-    if (selectedVendor) {
-      formData.append("id_vendor", String(selectedVendor));
-    }
-    formData.append("kategori", "AKADEMIK");
-    formData.append("status_program", "Draft");
-    formData.append("tahun", String(tahun));
-    if (tanggalMulai) {
-      formData.append("tanggal_mulai", tanggalMulai);
-    }
-
-    formData.append("file_mou", fileMou);
-
-    const fasesData = validFases.map((f) => ({
-      nama_fase: f.nama_fase,
-      deskripsi: f.deskripsi || "",
-      urutan: f.urutan,
-      kegiatans: f.kegiatans.filter(k => k.nama_kegiatans.trim() !== "").map((k, i) => ({
-        nama_kegiatans: k.nama_kegiatans,
-        deskripsi: k.deskripsi || "",
-        urutan: i + 1,
-      })),
-    }));
-    formData.append("fases", JSON.stringify(fasesData));
-
     try {
+      const formData = new FormData();
+
+      // Append Data String & Number
+      formData.append("nama_program", namaProgram);
+      formData.append("kpi", kpi);
+      formData.append("deskripsi", deskripsi);
+      formData.append("id_sekolah", String(selectedSekolah));
+      formData.append("id_pengawas", String(selectedAO));
+      formData.append("id_user_ho", String(selectedHO));
+      formData.append("harga_vendor", String(hargaVendor || 0));
+      formData.append("tahun", String(tahun));
+      formData.append("kategori", "AKADEMIK");
+      formData.append("status_program", "Draft");
+
+      if (tanggalMulai) formData.append("tanggal_mulai", tanggalMulai);
+
+      // Append Multi-Vendor (Kirim sebagai JSON String)
+      formData.append("ids_vendor", JSON.stringify(selectedVendors));
+
+      // Append File MOU
+      formData.append("file_mou", fileMou);
+
+      // Append Fase & Kegiatan (JSON String)
+      formData.append("fases", JSON.stringify(validFases));
+
       const res = await fetch("http://localhost:3000/program", {
         method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          // Jangan set Content-Type manual kalau pakai FormData
+        },
         body: formData,
       });
+
       if (res.ok) {
-        toast.success("Program Berhasil Dibuat!");
-        navigate("/ho/program/akademik");
+        toast.success("Program Akademik Berhasil Diterbitkan!");
+        setTimeout(() => navigate("/ho/program/akademik"), 1500);
       } else {
-        const b = await res.json();
-        toast.error(b.message);
+        const errorData = await res.json();
+        toast.error(errorData.message || "Gagal menyimpan ke server.");
       }
     } catch (err) {
-      toast.error("Gagal menyimpan data");
+      toast.error("Koneksi server terputus atau server sedang offline.");
     } finally {
       setLoading(false);
     }
   };
-
-  const DropdownTrigger = ({ type, placeholder, value }) => (
-    <button
-      type="button"
-      onClick={() => setOpenDrop(openDrop === type ? null : type)}
-      className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm transition-all ${openDrop === type ? "border-orange-500 ring-2 ring-orange-500/10" : "border-gray-200 bg-gray-50/50 hover:border-gray-300"}`}
-    >
-      <span
-        className={`truncate ${value ? "text-gray-800 font-bold" : "text-gray-400"}`}
-      >
-        {value || placeholder}
-      </span>
-      <ChevronDown
-        size={14}
-        className={`transition-transform ${openDrop === type ? "rotate-180 text-orange-500" : ""}`}
-      />
-    </button>
-  );
-
   return (
-    <PageWrapper className="h-screen bg-[#EEF5FF] flex overflow-hidden !p-0">
+    <PageWrapper className="h-screen bg-[#F1F5F9] flex overflow-hidden !p-0">
       <Sidebar />
-      <main className="flex-1 flex flex-col h-full overflow-hidden px-4 md:px-12 pt-6 md:pt-10 pb-0">
-        <Card className="flex-1 flex flex-col !m-0 !p-0 rounded-t-[2.5rem] rounded-b-[2.5rem] border-none shadow-2xl bg-white overflow-hidden relative">
-          <div className="px-8 pt-6 pb-6 shrink-0">
-            <header className="flex flex-row items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-orange-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition animate-pulse"></div>
-                  <div className="relative p-3.5 bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl text-white shadow-xl">
-                    <PlusCircle size={22} strokeWidth={2} />
+      <main className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* HEADER - COMPACT */}
+        <header className="px-8 pt-5 pb-3 shrink-0 flex items-center justify-between bg-white border-b border-gray-200 z-30">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-[#1E5AA5] rounded-xl text-white shadow-md">
+              <PlusCircle size={20} />
+            </div>
+            <h1 className="text-lg font-black text-gray-800 uppercase tracking-tight leading-none">
+              Inisiasi <span className="text-[#1E5AA5]">Akademik</span>
+            </h1>
+          </div>
+          <Button
+            text="Kembali"
+            icon={<ArrowLeft size={14} />}
+            onClick={() => navigate("/ho/program/akademik")}
+            className="!bg-gray-50 !text-gray-400 !rounded-xl !px-4 !py-2 !text-[10px] font-bold border border-gray-100 transition-all hover:!text-red-500"
+          />
+        </header>
+
+        {/* CONTENT AREA */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-8 pt-6 pb-20 space-y-6">
+          <div className="max-w-[1400px] mx-auto space-y-6">
+            {/* ROW 1: SASARAN & OTORITAS */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-7 bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <Target size={18} className="text-[#1E5AA5]" />
+                  <h3 className="text-xs font-black text-gray-800 uppercase">
+                    Sasaran Wilayah
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    <Label
+                      text="Pilih Sekolah"
+                      className="!text-[9px] uppercase font-bold text-gray-400"
+                    />
+                    <button
+                      onClick={() =>
+                        setOpenDrop(openDrop === "sek" ? null : "sek")
+                      }
+                      className="w-full text-left px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-bold flex justify-between items-center transition-all hover:bg-white hover:border-[#1E5AA5]"
+                    >
+                      {sekolahList.find((s) => s.id_sekolah === selectedSekolah)
+                        ?.nama_sekolah || "Pilih..."}
+                      <ChevronDown size={14} />
+                    </button>
+                    {openDrop === "sek" && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border rounded-xl shadow-2xl max-h-40 overflow-y-auto p-1 animate-in fade-in zoom-in-95">
+                        {sekolahList.map((s) => (
+                          <div
+                            key={s.id_sekolah}
+                            onClick={() => handleSekolahSelect(s.id_sekolah)}
+                            className="p-2 hover:bg-blue-50 rounded-lg cursor-pointer text-xs font-bold"
+                          >
+                            {s.nama_sekolah}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="bg-blue-50/50 p-2 rounded-xl border border-blue-100 flex justify-around items-center">
+                    <div className="text-center">
+                      <p className="text-[7px] font-bold text-gray-400 uppercase">
+                        Kota
+                      </p>
+                      <p className="text-[10px] font-black text-[#1E5AA5]">
+                        {wilayahInfo.kota || "-"}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[7px] font-bold text-gray-400 uppercase">
+                        Provinsi
+                      </p>
+                      <p className="text-[10px] font-black text-[#1E5AA5]">
+                        {wilayahInfo.provinsi || "-"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-col -space-y-1">
-                  <Label
-                    text="Sistem Monitoring dan Evaluasi Program"
-                    className="!text-[8px] !text-[#1E5AA5] !font-black tracking-[0.3em] !mb-1 uppercase"
-                  />
-                  <h1 className="text-xl font-black text-gray-800 tracking-tight uppercase leading-none">
-                    Inisiasi Program{" "}
-                    <span className="text-orange-500">Akademik</span>
-                  </h1>
-                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  text="← Kembali"
-                  icon={<ArrowLeft size={14} />}
-                  onClick={() => navigate("/ho/program/akademik")}
-                  className="group !bg-gray-600 hover:!bg-gray-700 !rounded-xl !px-5 !py-2.5 !text-[10px] font-black text-white shadow-lg active:scale-95 transition-all flex items-center gap-2"
-                />
-              </div>
-            </header>
 
-            <div className="flex flex-row items-center gap-3 mb-6">
-              <div className="flex items-center gap-3 px-5 py-2.5 bg-orange-50 text-orange-600 rounded-xl border border-orange-100 font-black text-[9px] uppercase tracking-[0.2em] shrink-0">
-                <BookOpen size={14} /> Kategori: Akademik YPA-MDR
+              <div className="lg:col-span-5 bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <UserCheck size={18} className="text-emerald-600" />
+                  <h3 className="text-xs font-black text-gray-800 uppercase">
+                    PIC Otoritas
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative">
+                    <button
+                      onClick={() =>
+                        setOpenDrop(openDrop === "ho" ? null : "ho")
+                      }
+                      className="w-full text-left px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-bold flex justify-between transition-all hover:border-emerald-500"
+                    >
+                      {hoList.find((h) => h.id_user === selectedHO)?.nama ||
+                        "PIC HO"}
+                      <ChevronDown size={14} />
+                    </button>
+                    {openDrop === "ho" && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border rounded-xl shadow-xl max-h-40 overflow-y-auto p-1">
+                        {hoList.map((h) => (
+                          <div
+                            key={h.id_user}
+                            onClick={() => {
+                              setSelectedHO(h.id_user);
+                              setOpenDrop(null);
+                            }}
+                            className="p-2 hover:bg-emerald-50 rounded-lg cursor-pointer text-xs font-bold"
+                          >
+                            {h.nama}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <button
+                      onClick={() =>
+                        setOpenDrop(openDrop === "ao" ? null : "ao")
+                      }
+                      className="w-full text-left px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-bold flex justify-between transition-all hover:border-blue-500"
+                    >
+                      {aoList.find((a) => a.id_user === selectedAO)?.nama ||
+                        "AO Wilayah"}
+                      <ChevronDown size={14} />
+                    </button>
+                    {openDrop === "ao" && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border rounded-xl shadow-xl max-h-40 overflow-y-auto p-1">
+                        {aoList.map((a) => (
+                          <div
+                            key={a.id_user}
+                            onClick={() => {
+                              setSelectedAO(a.id_user);
+                              setOpenDrop(null);
+                            }}
+                            className="p-2 hover:bg-blue-50 rounded-lg cursor-pointer text-xs font-bold"
+                          >
+                            {a.nama}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex-1 overflow-hidden flex flex-col px-10 pb-4">
-            <div className="flex-1 bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col shadow-sm">
-              <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Informasi Target */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 pb-3 border-b-2 border-orange-100">
-                      <div className="p-2 bg-orange-50 rounded-lg">
-                        <Target size={20} className="text-orange-600" />
-                      </div>
-                      <h3 className="text-lg font-black text-gray-800 uppercase tracking-wide">
-                        Informasi Target
-                      </h3>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label text="Sekolah Sasaran" required />
-                        <div className="relative">
-                          <DropdownTrigger
-                            type="sekolah"
-                            placeholder="Pilih Sekolah"
-                            value={
-                              sekolahList.find(
-                                (s) => s.id_sekolah === selectedSekolah,
-                              )?.nama_sekolah
-                            }
-                          />
-                          {openDrop === "sekolah" && (
-                            <ul className="absolute z-40 w-full bg-white border border-gray-100 mt-2 rounded-xl shadow-2xl max-h-48 overflow-y-auto p-1">
-                              {sekolahList.map((s) => (
-                                <li
-                                  key={s.id_sekolah}
-                                  onClick={() =>
-                                    handleSekolahSelect(s.id_sekolah)
-                                  }
-                                  className="px-4 py-2 hover:bg-orange-50 rounded-lg cursor-pointer text-sm font-bold text-gray-600 transition-colors"
-                                >
-                                  {s.nama_sekolah}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
-                        <div>
-                          <Label text="Provinsi" />
-                          <p className="text-sm font-black text-orange-600">
-                            {wilayahInfo.provinsi || "-"}
-                          </p>
-                        </div>
-                        <div>
-                          <Label text="Kabupaten / Kota" />
-                          <p className="text-sm font-black text-orange-600">
-                            {wilayahInfo.kota || "-"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label text="Pengawas (AO)" required />
-                        <div className="relative">
-                          <DropdownTrigger
-                            type="ao"
-                            placeholder="Pilih Pengawas"
-                            value={
-                              aoList.find((a) => a.id_user === selectedAO)?.nama
-                            }
-                          />
-                          {openDrop === "ao" && (
-                            <ul className="absolute z-40 w-full bg-white border border-gray-100 mt-2 rounded-xl shadow-2xl max-h-48 overflow-y-auto p-1">
-                              {aoList.map((a) => (
-                                <li
-                                  key={a.id_user}
-                                  onClick={() => {
-                                    setSelectedAO(a.id_user);
-                                    setOpenDrop(null);
-                                  }}
-                                  className="px-4 py-2 hover:bg-orange-50 rounded-lg cursor-pointer text-sm font-bold text-gray-600 transition-colors"
-                                >
-                                  {a.nama}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Detail Program */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 pb-3 border-b-2 border-orange-100">
-                      <div className="p-2 bg-green-50 rounded-lg">
-                        <Info size={20} className="text-green-600" />
-                      </div>
-                      <h3 className="text-lg font-black text-gray-800 uppercase tracking-wide">
-                        Detail Program
-                      </h3>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex p-1 bg-gray-100 rounded-xl">
-                        <button
-                          onClick={() => {
-                            setIsTemplateMode(false);
-                            setNamaProgram("");
-                          }}
-                          className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${!isTemplateMode ? "bg-white text-orange-600 shadow-sm" : "text-gray-400"}`}
-                        >
-                          Custom
-                        </button>
-                        <button
-                          onClick={() => setIsTemplateMode(true)}
-                          className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${isTemplateMode ? "bg-white text-orange-600 shadow-sm" : "text-gray-400"}`}
-                        >
-                          Template
-                        </button>
-                      </div>
-
-                      {isTemplateMode && (
-                        <div className="space-y-2">
-                          <Label text="Pilih Template" />
-                          <div className="relative">
-                            <DropdownTrigger
-                              type="template"
-                              placeholder="Pilih Template"
-                              value={
-                                templateList.find(
-                                  (t) => t.id_program === selectedTemplate,
-                                )?.nama_program
-                              }
-                            />
-                            {openDrop === "template" && (
-                              <ul className="absolute z-40 w-full bg-white border border-gray-100 mt-2 rounded-xl shadow-2xl max-h-48 overflow-y-auto p-1">
-                                {templateList.map((t) => (
-                                  <li
-                                    key={t.id_program}
-                                    onClick={() => {
-                                      setSelectedTemplate(t.id_program);
-                                      setNamaProgram(t.nama_program);
-                                      setDeskripsi(t.deskripsi || "");
-                                      setOpenDrop(null);
-                                    }}
-                                    className="px-4 py-2 hover:bg-orange-50 rounded-lg cursor-pointer text-sm font-bold text-gray-600 transition-colors"
-                                  >
-                                    {t.nama_program}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="space-y-2">
-                        <Label text="Nama Program" required />
-                        <Input
-                          placeholder="cth: Pelatihan IT"
-                          value={namaProgram}
-                          onChange={(e) => setNamaProgram(e.target.value)}
-                          className="bg-gray-50 border-transparent focus:bg-white font-bold"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label text="Deskripsi Singkat" />
-                        <textarea
-                          className="w-full bg-gray-50 border-none rounded-xl p-4 text-sm font-medium focus:ring-2 focus:ring-orange-500/20 h-32 resize-none"
-                          placeholder="Tulis tujuan program..."
-                          value={deskripsi}
-                          onChange={(e) => setDeskripsi(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
+            {/* ROW 2: DETAIL PROGRAM & MITRA */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-4">
+                <div className="space-y-1">
+                  <Label
+                    text="Nama Program Utama"
+                    className="!text-[9px] uppercase"
+                  />
+                  <Input
+                    placeholder="Contoh: Digitalisasi Modul Pengajaran..."
+                    value={namaProgram}
+                    onChange={(e) => setNamaProgram(e.target.value)}
+                    className="!text-lg !font-black !py-4 !bg-gray-50/50 !rounded-2xl"
+                  />
                 </div>
-
-                {/* Logistik & Dokumen */}
-                <div className="mt-8 space-y-6">
-                  <div className="flex items-center gap-3 pb-3 border-b-2 border-orange-100">
-                    <div className="p-2 bg-blue-50 rounded-lg">
-                      <FileText size={20} className="text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-black text-gray-800 uppercase tracking-wide">
-                      Logistik & Dokumen
-                    </h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <Label text="Tahun" required />
-                      <Input
-                        type="number"
-                        value={tahun}
-                        onChange={(e) => setTahun(e.target.value)}
-                        className="bg-gray-50 border-transparent text-center font-black"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label text="Mulai" />
-                      <Input
-                        type="date"
-                        value={tanggalMulai}
-                        onChange={(e) => setTanggalMulai(e.target.value)}
-                        className="bg-gray-50 border-transparent text-sm"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label text="Vendor Eksternal" />
-                      <div className="relative">
-                        <DropdownTrigger
-                          type="vendor"
-                          placeholder="Pilih Vendor (Optional)"
-                          value={
-                            vendorList.find(
-                              (v) => v.id_vendor === selectedVendor,
-                            )?.nama_vendor
-                          }
-                        />
-                        {openDrop === "vendor" && (
-                          <ul className="absolute z-40 w-full bg-white border border-gray-100 mt-2 rounded-xl shadow-2xl max-h-48 overflow-y-auto p-1">
-                            <li
-                              onClick={() => {
-                                setSelectedVendor(null);
-                                setOpenDrop(null);
-                              }}
-                              className="px-4 py-2 hover:bg-gray-100 rounded-lg italic text-gray-400 text-sm"
-                            >
-                              Tanpa Vendor
-                            </li>
-                            {vendorList.map((v) => (
-                              <li
-                                key={v.id_vendor}
-                                onClick={() => {
-                                  setSelectedVendor(v.id_vendor);
-                                  setOpenDrop(null);
-                                }}
-                                className="px-4 py-2 hover:bg-orange-50 rounded-lg cursor-pointer text-sm font-bold text-gray-600 transition-colors"
-                              >
-                                {v.nama_vendor}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label text="Upload MOU" required />
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 hover:bg-orange-50/30 hover:border-orange-500 transition-all cursor-pointer group">
-                      <Upload
-                        size={24}
-                        className="text-gray-300 group-hover:text-orange-500 mb-2 transition-colors"
-                      />
-                      <div className="text-center px-4">
-                        <p className="text-[10px] font-black text-gray-400 group-hover:text-orange-600 truncate w-full">
-                          {fileMou ? fileMou.name : "KLIK UNTUK UNGGAH MOU"}
-                        </p>
-                      </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={(e) => setFileMou(e.target.files[0])}
-                        accept=".pdf,.jpg,.png"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {/* Fase & Kegiatan */}
-                <div className="mt-8 space-y-6">
-                  <div className="flex items-center justify-between pb-3 border-b-2 border-orange-100">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-50 rounded-lg">
-                        <ListChecks size={20} className="text-purple-600" />
-                      </div>
-                      <h3 className="text-lg font-black text-gray-800 uppercase tracking-wide">
-                        Fase & Kegiatan Program
-                      </h3>
-                    </div>
-                    <Button
-                      text="Tambah Fase"
-                      icon={<PlusCircle size={14} />}
-                      onClick={addFase}
-                      className="!bg-purple-50 !text-purple-600 hover:!bg-purple-600 hover:!text-white !rounded-xl !px-4 !py-2 !text-[10px] font-black transition-all shadow-sm"
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label
+                      text="KPI Capaian"
+                      className="!text-[9px] uppercase"
+                    />
+                    <Input
+                      placeholder="KPI terukur..."
+                      value={kpi}
+                      onChange={(e) => setKpi(e.target.value)}
+                      className="!text-xs !bg-blue-50/30 !rounded-xl"
                     />
                   </div>
-
-                  <div className="space-y-4">
-                    {fases.map((fase, faseIndex) => (
-                      <div
-                        key={faseIndex}
-                        className="border border-gray-200 rounded-xl overflow-hidden"
-                      >
-                        <div
-                          className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer"
-                          onClick={() => toggleFaseExpand(faseIndex)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm">
-                              {faseIndex + 1}
-                            </div>
-                            <input
-                              type="text"
-                              placeholder={`Nama Fase ${faseIndex + 1}`}
-                              value={fase.nama_fase}
-                              onChange={(e) =>
-                                updateFase(faseIndex, "nama_fase", e.target.value)
-                              }
-                              onClick={(e) => e.stopPropagation()}
-                              className="bg-transparent border-none font-black text-gray-800 placeholder-gray-400 focus:ring-0 w-48"
-                            />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              text="Hapus"
-                              icon={<Trash2 size={12} />}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeFase(faseIndex);
-                              }}
-                              className="!bg-red-50 !text-red-500 hover:!bg-red-600 hover:!text-white !rounded-lg !px-3 !py-1.5 !text-[9px] font-black"
-                            />
-                            <ChevronRight
-                              size={18}
-                              className={`text-gray-400 transition-transform ${
-                                expandedFase[faseIndex] ? "rotate-90" : ""
-                              }`}
-                            />
-                          </div>
-                        </div>
-
-                        {expandedFase[faseIndex] && (
-                          <div className="p-4 bg-white border-t border-gray-200 space-y-3">
-                            <div className="space-y-2">
-                              <Label text="Deskripsi Fase" />
-                              <textarea
-                                className="w-full bg-gray-50 border-none rounded-lg p-3 text-sm font-medium focus:ring-2 focus:ring-orange-500/20 h-20 resize-none"
-                                placeholder="Deskripsi fase..."
-                                value={fase.deskripsi}
-                                onChange={(e) =>
-                                  updateFase(faseIndex, "deskripsi", e.target.value)
-                                }
-                              />
-                            </div>
-
-                            <div className="flex items-center justify-between pt-2">
-                              <h4 className="text-xs font-black text-gray-500 uppercase">
-                                Kegiatan ({fase.kegiatans.length})
-                              </h4>
-                              <Button
-                                text="Tambah Kegiatan"
-                                icon={<PlusCircle size={12} />}
-                                onClick={() => addActivitiesToFase(faseIndex)}
-                                className="!bg-orange-50 !text-orange-600 hover:!bg-orange-600 hover:!text-white !rounded-lg !px-3 !py-1.5 !text-[9px] font-black"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              {fase.kegiatans.map((keg, kegIndex) => (
-                                <div
-                                  key={kegIndex}
-                                  className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg"
-                                >
-                                  <div className="w-6 h-6 rounded-md bg-orange-500 text-white flex items-center justify-center font-black text-[10px]">
-                                    {kegIndex + 1}
-                                  </div>
-                                  <input
-                                    type="text"
-                                    placeholder={`Nama Kegiatan ${kegIndex + 1}`}
-                                    value={keg.nama_kegiatans}
-                                    onChange={(e) =>
-                                      updateActivities(
-                                        faseIndex,
-                                        kegIndex,
-                                        "nama_kegiatans",
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="flex-1 bg-transparent border-none font-bold text-gray-700 placeholder-gray-400 focus:ring-0 text-sm"
-                                  />
-                                  <button
-                                    onClick={() =>
-                                      removeActivitiesFromFase(faseIndex, kegIndex)
-                                    }
-                                    className="p-1.5 text-red-400 hover:text-red-600"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                  <div className="space-y-1">
+                    <Label
+                      text="Anggaran (IDR)"
+                      className="!text-[9px] uppercase"
+                    />
+                    <div className="relative">
+                      <DollarSign
+                        size={14}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600"
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Harga..."
+                        value={hargaVendor}
+                        onChange={(e) => setHargaVendor(e.target.value)}
+                        className="!text-xs !pl-8 !bg-emerald-50/30 !rounded-xl"
+                      />
+                    </div>
                   </div>
                 </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
-                  <Button
-                    text={loading ? "Menyimpan..." : "Simpan Program"}
-                    icon={<Save size={14} />}
-                    disabled={loading}
-                    onClick={saveProgram}
-                    className="!bg-orange-50 !text-orange-600 hover:!bg-orange-600 hover:!text-white !rounded-xl !px-6 !py-3 !text-sm font-black transition-all shadow-sm"
+              </div>
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
+                <div className="relative">
+                  <Label
+                    text="Mitra Pelaksana (Multi)"
+                    className="!text-[8px] uppercase font-black"
                   />
+                  <button
+                    onClick={() =>
+                      setOpenDrop(openDrop === "ven" ? null : "ven")
+                    }
+                    className="w-full text-left px-4 py-2.5 bg-white border rounded-xl text-[10px] font-bold flex justify-between items-center transition-all hover:border-[#1E5AA5]"
+                  >
+                    {selectedVendors.length
+                      ? `${selectedVendors.length} Vendor`
+                      : "Pilih Vendor..."}
+                    <ChevronDown size={14} />
+                  </button>
+                  {openDrop === "ven" && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border rounded-xl shadow-xl max-h-32 overflow-y-auto p-1">
+                      {vendorList.map((v) => (
+                        <div
+                          key={v.id_vendor}
+                          onClick={() => {
+                            if (!selectedVendors.includes(v.id_vendor))
+                              setSelectedVendors([
+                                ...selectedVendors,
+                                v.id_vendor,
+                              ]);
+                            setOpenDrop(null);
+                          }}
+                          className="p-2 hover:bg-blue-50 rounded-lg cursor-pointer text-[10px] font-bold"
+                        >
+                          {v.nama_vendor || v.nama}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+                <div className="flex flex-wrap gap-1">
+                  {selectedVendors.map((id) => (
+                    <span
+                      key={id}
+                      className="px-2 py-0.5 bg-[#1E5AA5] text-white text-[8px] font-bold rounded flex items-center gap-1"
+                    >
+                      {vendorList.find((v) => v.id_vendor === id)
+                        ?.nama_vendor || "Vendor"}
+                      <X
+                        size={10}
+                        className="cursor-pointer"
+                        onClick={() =>
+                          setSelectedVendors(
+                            selectedVendors.filter((x) => x !== id),
+                          )
+                        }
+                      />
+                    </span>
+                  ))}
+                </div>
+                <label className="flex items-center gap-2 p-2 border border-dashed border-blue-300 rounded-xl bg-white cursor-pointer hover:bg-blue-50 transition-colors">
+                  <Upload size={14} className="text-[#1E5AA5]" />
+                  <span className="text-[9px] font-bold text-gray-400 truncate">
+                    {fileMou ? fileMou.name : "Unggah MOU"}
+                  </span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => setFileMou(e.target.files[0])}
+                  />
+                </label>
               </div>
             </div>
+
+            {/* SECTION 3: TAHAPAN PROGRAM */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center px-2">
+                <div className="flex items-center gap-2">
+                  <ListChecks size={20} className="text-[#1E5AA5]" />
+                  <h3 className="text-sm font-black text-gray-800 uppercase">
+                    Tahapan Implementasi
+                  </h3>
+                </div>
+                <button
+                  onClick={addFase}
+                  className="px-4 py-2 bg-[#1E5AA5] text-white rounded-xl text-[10px] font-black shadow-lg shadow-blue-100 hover:scale-105 transition-transform"
+                >
+                  + TAMBAH FASE
+                </button>
+              </div>
+
+              {fases.map((f, i) => (
+                <div
+                  key={i}
+                  className="bg-white border rounded-2xl overflow-hidden shadow-sm group hover:shadow-md transition-shadow"
+                >
+                  <div
+                    className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => toggleFaseExpand(i)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="w-10 h-10 bg-[#1E5AA5] text-white flex items-center justify-center rounded-xl font-black text-sm shadow-md">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <input
+                        value={f.nama_fase}
+                        onChange={(e) =>
+                          updateFase(i, "nama_fase", e.target.value)
+                        }
+                        onClick={(e) => e.stopPropagation()}
+                        className="border-none font-bold text-base focus:ring-0 w-80 bg-transparent placeholder-gray-300"
+                        placeholder="Contoh: Tahap Persiapan & Riset..."
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Trash2
+                        size={18}
+                        className="text-gray-200 hover:text-red-500 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFase(i);
+                        }}
+                      />
+                      <ChevronDown
+                        size={20}
+                        className={`text-gray-400 transition-all duration-300 ${expandedFase[i] ? "rotate-180" : ""}`}
+                      />
+                    </div>
+                  </div>
+                  {expandedFase[i] && (
+                    <div className="p-6 bg-slate-50/50 border-t space-y-6 animate-in fade-in duration-300">
+                      <div className="space-y-1">
+                        <Label
+                          text="Deskripsi Tahapan"
+                          className="!text-[8px] uppercase"
+                        />
+                        <textarea
+                          value={f.deskripsi}
+                          onChange={(e) =>
+                            updateFase(i, "deskripsi", e.target.value)
+                          }
+                          className="w-full p-4 text-xs border-none rounded-xl h-24 shadow-inner"
+                          placeholder="Jelaskan apa yang ingin dicapai pada fase ini..."
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center border-b pb-2">
+                          <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                            Daftar Kegiatan Lapangan
+                          </h4>
+                          <button
+                            onClick={() => addActivitiesToFase(i)}
+                            className="text-[10px] font-black text-[#1E5AA5] hover:underline"
+                          >
+                            + TAMBAH KEGIATAN
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {f.kegiatans.map((k, ki) => (
+                            <div
+                              key={ki}
+                              className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 hover:border-blue-200 transition-all group/item"
+                            >
+                              <span className="w-7 h-7 bg-blue-50 text-[#1E5AA5] flex items-center justify-center rounded-lg font-black text-[10px]">
+                                {ki + 1}
+                              </span>
+                              <input
+                                value={k.nama_kegiatans}
+                                onChange={(e) =>
+                                  updateActivities(
+                                    i,
+                                    ki,
+                                    "nama_kegiatans",
+                                    e.target.value,
+                                  )
+                                }
+                                className="flex-1 border-none text-xs font-bold focus:ring-0 bg-transparent"
+                                placeholder="Detail kegiatan operasional..."
+                              />
+                              <Trash2
+                                size={14}
+                                className="text-gray-200 hover:text-red-500 cursor-pointer transition-colors"
+                                onClick={() => removeActivitiesFromFase(i, ki)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* FINAL SAVE BUTTON */}
+            <div className="flex justify-center pt-10">
+              <Button
+                text={
+                  loading
+                    ? "SEDANG MENSINKRONISASI..."
+                    : "SIMPAN SELURUH PROGRAM"
+                }
+                icon={<Save size={20} />}
+                disabled={loading}
+                onClick={saveProgram}
+                className="!bg-[#1E5AA5] !text-white !rounded-[2rem] !px-24 !py-5 !text-sm font-black shadow-2xl shadow-blue-200 hover:-translate-y-1 transition-all uppercase tracking-widest active:scale-95"
+              />
+            </div>
           </div>
-        </Card>
+        </div>
       </main>
     </PageWrapper>
   );

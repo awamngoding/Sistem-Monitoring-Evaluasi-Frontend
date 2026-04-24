@@ -18,7 +18,7 @@ import {
   ToggleRight,
   School,
   ArrowLeft,
-  Plus
+  Plus,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -28,7 +28,7 @@ function ListProgramnonAkademik() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("Semua");
-  
+
   const [sekolahDetail, setSekolahDetail] = useState(null);
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,14 +42,17 @@ function ListProgramnonAkademik() {
       const token = localStorage.getItem("token");
       const newStatus = currentStatus === "Aktif" ? "Draft" : "Aktif";
 
-      const res = await fetch(`http://localhost:3000/program/${programId}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `http://localhost:3000/program/${programId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status_program: newStatus }),
         },
-        body: JSON.stringify({ status_program: newStatus }),
-      });
+      );
 
       if (!res.ok) throw new Error("Gagal mengubah status");
 
@@ -64,29 +67,35 @@ function ListProgramnonAkademik() {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
-      
+
       const [resProgram, resSekolah] = await Promise.all([
         fetch("http://localhost:3000/program?kategori=NON_AKADEMIK", {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`http://localhost:3000/sekolah/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
+        }),
       ]);
 
-      if (!resProgram.ok || !resSekolah.ok) throw new Error("Gagal mengambil data");
+      if (!resProgram.ok || !resSekolah.ok)
+        throw new Error("Gagal mengambil data");
 
       const dataProgram = await resProgram.json();
       const dataSekolah = await resSekolah.json();
-      
+
       setSekolahDetail(dataSekolah);
 
       // Filter program yang HANYA milik sekolah ini
-      const schoolPrograms = (Array.isArray(dataProgram) ? dataProgram : []).filter(p => {
+      const schoolPrograms = (
+        Array.isArray(dataProgram) ? dataProgram : []
+      ).filter((p) => {
         if (p.id_sekolah && dataSekolah.id_sekolah) {
           return String(p.id_sekolah) === String(dataSekolah.id_sekolah);
         }
-        return p.sekolah?.trim().toLowerCase() === dataSekolah.nama_sekolah?.trim().toLowerCase();
+        return (
+          p.sekolah?.trim().toLowerCase() ===
+          dataSekolah.nama_sekolah?.trim().toLowerCase()
+        );
       });
 
       setPrograms(schoolPrograms);
@@ -127,7 +136,7 @@ function ListProgramnonAkademik() {
   const tableColumns = [
     {
       header: "NO",
-      align: "text-center w-[60px]",
+      align: "text-center w-[50px]",
       render: (_, index) => (
         <span className="text-[10px] font-mono font-bold text-gray-400">
           {String(start + index + 1).padStart(2, "0")}
@@ -135,29 +144,26 @@ function ListProgramnonAkademik() {
       ),
     },
     {
-      header: "KODE PROGRAM",
-      align: "text-left",
-      render: (row) => (
-        <span className="font-mono text-gray-600 text-[11px] font-bold uppercase tracking-wider">
-          {row.kode_program || "-"}
-        </span>
-      ),
-    },
-    {
       header: "NAMA PROGRAM",
       align: "text-left",
       render: (row) => (
-        <span className="font-black text-[#2E5AA7] text-[11px] uppercase leading-tight">
-          {row.nama_program || "-"}
-        </span>
+        <div className="flex flex-col">
+          <span className="font-black text-[#2E5AA7] text-[11px] uppercase leading-tight">
+            {row.nama_program || "-"}
+          </span>
+          <span className="text-[9px] text-gray-400 font-mono mt-0.5">
+            {row.kode_program || "NO-CODE"}
+          </span>
+        </div>
       ),
     },
     {
-      header: "PENGAWAS (AO)",
+      header: "NAMA HO (PIC)",
       align: "text-center",
       render: (row) => (
-        <span className="text-gray-600 text-[10px] font-bold uppercase tracking-widest">
-          {row.nama_pengawas || row.pengawas || "-"}
+        <span className="text-gray-600 text-[10px] font-bold uppercase tracking-wider">
+          {/* Pastikan backend mereturn field nama_ho atau creator */}
+          {row.user?.nama || row.nama_ho || "PIC HO"}
         </span>
       ),
     },
@@ -165,7 +171,7 @@ function ListProgramnonAkademik() {
       header: "TAHUN",
       align: "text-center",
       render: (row) => (
-        <span className="font-mono text-gray-600 text-[10px] font-bold">
+        <span className="font-mono text-gray-600 text-[10px] font-black bg-gray-100 px-2 py-0.5 rounded">
           {row.tahun || "-"}
         </span>
       ),
@@ -190,22 +196,37 @@ function ListProgramnonAkademik() {
       align: "text-center w-[140px]",
       render: (row) => (
         <div className="flex justify-center gap-2">
+          {/* Detail */}
           <Button
             text=""
             icon={<Eye size={12} />}
-            onClick={() => navigate(`/ho/program/non-akademik/detail/${row.id_program}`)}
+            onClick={() =>
+              navigate(`/ho/program/non-akademik/detail/${row.id_program}`)
+            }
             className="!bg-amber-50 !text-amber-600 hover:!bg-amber-600 hover:!text-white !rounded-lg !px-3 !py-2 !w-auto !h-auto transition-all shadow-sm"
           />
+          {/* Edit */}
           <Button
             text=""
             icon={<Edit size={12} />}
-            onClick={() => navigate(`/ho/program/non-akademik/edit/${row.id_program}`)}
+            onClick={() =>
+              navigate(`/ho/program/non-akademik/edit/${row.id_program}`)
+            }
             className="!bg-blue-50 !text-blue-600 hover:!bg-blue-600 hover:!text-white !rounded-lg !px-3 !py-2 !w-auto !h-auto transition-all shadow-sm"
           />
+          {/* Toggle Status */}
           <Button
             text=""
-            icon={row.status_program === "Aktif" ? <ToggleRight size={12} /> : <ToggleLeft size={12} />}
-            onClick={() => handleToggleStatus(row.id_program, row.status_program)}
+            icon={
+              row.status_program === "Aktif" ? (
+                <ToggleRight size={12} />
+              ) : (
+                <ToggleLeft size={12} />
+              )
+            }
+            onClick={() =>
+              handleToggleStatus(row.id_program, row.status_program)
+            }
             className={`!rounded-lg !px-3 !py-2 !w-auto !h-auto transition-all shadow-sm ${
               row.status_program === "Aktif"
                 ? "!bg-emerald-50 !text-emerald-600 hover:!bg-emerald-600 hover:!text-white"
@@ -220,7 +241,9 @@ function ListProgramnonAkademik() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#EEF5FF]">
-        <p className="text-xl font-bold text-[#2E5AA7] animate-pulse">Memuat Data Program...</p>
+        <p className="text-xl font-bold text-[#2E5AA7] animate-pulse">
+          Memuat Data Program...
+        </p>
       </div>
     );
   }
@@ -246,7 +269,9 @@ function ListProgramnonAkademik() {
                   />
                   <h1 className="text-xl font-black text-gray-800 tracking-tight uppercase leading-none">
                     Daftar Program{" "}
-                    <span className="text-[#2E5AA7]">{sekolahDetail?.nama_sekolah || "Sekolah"}</span>
+                    <span className="text-[#2E5AA7]">
+                      {sekolahDetail?.nama_sekolah || "Sekolah"}
+                    </span>
                   </h1>
                 </div>
               </div>

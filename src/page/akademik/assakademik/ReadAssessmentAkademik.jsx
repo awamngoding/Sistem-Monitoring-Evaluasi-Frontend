@@ -75,7 +75,7 @@ function ReadAssessmentAkademik() {
           id: item.id_assessment,
           nama: item.nama ?? "-",
           ho: item.ho ?? "-",
-          sekolah: item.sekolah ?? "-",
+          sekolah: item.daftar_sekolah ?? "-",
           jumlah_pengisi: item.jumlah_pengisi ?? item.jumlah_guru_mengisi ?? 0,
           sent: item.status === "Proses Pengisian",
           sent_at: item.sent_at,
@@ -233,9 +233,8 @@ function ReadAssessmentAkademik() {
                   ),
                 },
                 { header: "Nama HO", accessor: "ho" },
-                { header: "Sekolah", accessor: "sekolah" },
                 {
-                  header: "Sekolah Tujuan",
+                  header: "Nama Sekolah",
                   accessor: "sekolah", // Ini mengambil properti 'sekolah' dari mapped
                   render: (row) => {
                     // Karena array material, biasanya datanya string dipisah koma (ex: "SDN 1, SDN 2")

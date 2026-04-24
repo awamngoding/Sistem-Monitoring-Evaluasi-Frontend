@@ -3,749 +3,869 @@ import Sidebar from "../../../components/Sidebar";
 import Card from "../../../components/Card";
 import Button from "../../../components/Button";
 import PageWrapper from "../../../components/PageWrapper";
-import Label from "../../../components/Label";
-import Input from "../../../components/Input";
-import { toast } from "react-toastify";
-
 import { useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
-  Edit3,
-  MapPin,
-  User,
-  Calendar,
   FileText,
   Download,
-  Briefcase,
-  Info,
-  LayoutDashboard,
-  Eye,
-  PlusCircle,
-  ArrowDown,
-  ChevronDown,
-  ChevronRight,
-  Send,
-  File,
-  DollarSign,
-  Check,
-  X,
-  RefreshCcw,
+  UserCheck,
+  CheckCircle2,
   MessageCircle,
+  ShieldCheck,
+  BarChart3,
+  Zap,
+  Activity,
+  Building2,
+  Clock,
+  ChevronRight,
+  Layers,
+  Target,
+  TrendingUp,
+  Calendar,
+  Users,
+  Check,
+  CreditCard,
+  FileCheck,
+  FolderOpen,
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 function DetailProgramAkademik() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [expandedFase, setExpandedFase] = useState({});
-  const [expandedKeg, setExpandedKeg] = useState({});
-  const [showTerminModal, setShowTerminModal] = useState(null);
-  const [showChatModal, setShowChatModal] = useState(null);
-  const [terminForm, setTerminForm] = useState({ nama_termin: "", deskripsi: "", jumlah_pembayaran: 0, file_dokumentasi: null });
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState("");
-  const [sendingChat, setSendingChat] = useState(false);
-  const chatEndRef = useRef(null);
+  const [selectedPhaseIndex, setSelectedPhaseIndex] = useState(2); // default ke Pelaksanaan
+  const [selectedKegiatan, setSelectedKegiatan] = useState(null);
+
+  // Data Dummy
+  const dummyFases = [
+    {
+      id: 0,
+      nama_fase: "Inisiasi",
+      status: "completed",
+      progress: 100,
+      tanggal: "Jan 2024",
+      kegiatan: [
+        {
+          id: 1,
+          nama_kegiatan: "Kick-off Meeting & Pembentukan Tim",
+          status: "completed",
+          tanggal: "5 Jan 2024",
+          pic: "Project Manager",
+          deskripsi: "Pertemuan awal untuk membahas scope program.",
+          termin: [
+            {
+              id: 1,
+              nama: "Notulensi Meeting",
+              jenis: "dokumentasi",
+              status: "completed",
+              tanggal: "5 Jan 2024",
+              file: true,
+            },
+            {
+              id: 2,
+              nama: "Daftar Hadir Tim",
+              jenis: "dokumentasi",
+              status: "completed",
+              tanggal: "5 Jan 2024",
+              file: true,
+            },
+            {
+              id: 3,
+              nama: "Pembayaran Termin I",
+              jenis: "pembayaran",
+              status: "completed",
+              tanggal: "10 Jan 2024",
+              jumlah: "Rp 75.000.000",
+            },
+          ],
+        },
+        {
+          id: 2,
+          nama_kegiatan: "Studi Kelayakan",
+          status: "completed",
+          tanggal: "12 Jan 2024",
+          pic: "Tim Analis",
+          deskripsi: "Analisis kelayakan program.",
+          termin: [
+            {
+              id: 1,
+              nama: "Laporan Studi Kelayakan",
+              jenis: "dokumentasi",
+              status: "completed",
+              tanggal: "15 Jan 2024",
+              file: true,
+            },
+            {
+              id: 2,
+              nama: "Pembayaran Termin II",
+              jenis: "pembayaran",
+              status: "completed",
+              tanggal: "20 Jan 2024",
+              jumlah: "Rp 40.000.000",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 1,
+      nama_fase: "Perencanaan",
+      status: "completed",
+      progress: 100,
+      tanggal: "Feb 2024",
+      kegiatan: [
+        {
+          id: 1,
+          nama_kegiatan: "Perencanaan Kurikulum",
+          status: "completed",
+          tanggal: "5 Feb 2024",
+          pic: "Tim Akademik",
+          deskripsi: "Penyusunan kurikulum dan modul pembelajaran.",
+          termin: [
+            {
+              id: 1,
+              nama: "Dokumen Kurikulum",
+              jenis: "dokumentasi",
+              status: "completed",
+              tanggal: "8 Feb 2024",
+              file: true,
+            },
+            {
+              id: 2,
+              nama: "Modul Ajar",
+              jenis: "dokumentasi",
+              status: "completed",
+              tanggal: "12 Feb 2024",
+              file: true,
+            },
+            {
+              id: 3,
+              nama: "Pembayaran",
+              jenis: "pembayaran",
+              status: "completed",
+              tanggal: "15 Feb 2024",
+              jumlah: "Rp 50.000.000",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 2,
+      nama_fase: "Pelaksanaan",
+      status: "active",
+      progress: 65,
+      tanggal: "Mar-Mei 2024",
+      kegiatan: [
+        {
+          id: 1,
+          nama_kegiatan: "Pelaksanaan Program Inti",
+          status: "in-progress",
+          tanggal: "1 Mar 2024",
+          pic: "Tim Lapangan",
+          deskripsi: "Pelaksanaan program sesuai kurikulum.",
+          termin: [
+            {
+              id: 1,
+              nama: "Laporan Mingguan",
+              jenis: "dokumentasi",
+              status: "completed",
+              tanggal: "7 Mar 2024",
+              file: true,
+            },
+            {
+              id: 2,
+              nama: "Dokumentasi Kegiatan",
+              jenis: "dokumentasi",
+              status: "completed",
+              tanggal: "15 Mar 2024",
+              file: true,
+            },
+            {
+              id: 3,
+              nama: "Pembayaran Termin I",
+              jenis: "pembayaran",
+              status: "completed",
+              tanggal: "15 Mar 2024",
+              jumlah: "Rp 100.000.000",
+            },
+            {
+              id: 4,
+              nama: "Laporan Bulanan",
+              jenis: "dokumentasi",
+              status: "pending",
+              tanggal: "31 Mar 2024",
+              file: false,
+            },
+            {
+              id: 5,
+              nama: "Pembayaran Termin II",
+              jenis: "pembayaran",
+              status: "pending",
+              tanggal: "30 Apr 2024",
+              jumlah: "Rp 100.000.000",
+            },
+          ],
+        },
+        {
+          id: 2,
+          nama_kegiatan: "Monitoring & Evaluasi",
+          status: "in-progress",
+          tanggal: "Ongoing",
+          pic: "Supervisor",
+          deskripsi: "Monitoring harian dan evaluasi mingguan.",
+          termin: [
+            {
+              id: 1,
+              nama: "Form Monitoring",
+              jenis: "dokumentasi",
+              status: "completed",
+              tanggal: "Daily",
+              file: true,
+            },
+            {
+              id: 2,
+              nama: "Laporan Evaluasi",
+              jenis: "dokumentasi",
+              status: "in-progress",
+              tanggal: "Setiap Jumat",
+              file: false,
+            },
+            {
+              id: 3,
+              nama: "Pembayaran",
+              jenis: "pembayaran",
+              status: "pending",
+              tanggal: "Akhir Bulan",
+              jumlah: "Rp 50.000.000",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 3,
+      nama_fase: "Monitoring",
+      status: "pending",
+      progress: 0,
+      tanggal: "Jun 2024",
+      kegiatan: [
+        {
+          id: 1,
+          nama_kegiatan: "Pengawasan & Pengendalian Mutu",
+          status: "pending",
+          tanggal: "TBD",
+          pic: "Tim QA",
+          deskripsi: "Pengawasan kualitas pelaksanaan program.",
+          termin: [
+            {
+              id: 1,
+              nama: "Checklist Kualitas",
+              jenis: "dokumentasi",
+              status: "pending",
+              tanggal: "TBD",
+              file: false,
+            },
+            {
+              id: 2,
+              nama: "Laporan Audit",
+              jenis: "dokumentasi",
+              status: "pending",
+              tanggal: "TBD",
+              file: false,
+            },
+            {
+              id: 3,
+              nama: "Pembayaran",
+              jenis: "pembayaran",
+              status: "pending",
+              tanggal: "TBD",
+              jumlah: "Rp 75.000.000",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 4,
+      nama_fase: "Evaluasi",
+      status: "pending",
+      progress: 0,
+      tanggal: "Jul 2024",
+      kegiatan: [
+        {
+          id: 1,
+          nama_kegiatan: "Evaluasi Capaian Program",
+          status: "pending",
+          tanggal: "TBD",
+          pic: "Tim Evaluator",
+          deskripsi: "Evaluasi capaian program.",
+          termin: [
+            {
+              id: 1,
+              nama: "Laporan Evaluasi",
+              jenis: "dokumentasi",
+              status: "pending",
+              tanggal: "TBD",
+              file: false,
+            },
+            {
+              id: 2,
+              nama: "Pembayaran",
+              jenis: "pembayaran",
+              status: "pending",
+              tanggal: "TBD",
+              jumlah: "Rp 60.000.000",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 5,
+      nama_fase: "Pelaporan",
+      status: "pending",
+      progress: 0,
+      tanggal: "Aug 2024",
+      kegiatan: [
+        {
+          id: 1,
+          nama_kegiatan: "Penyusunan Laporan Akhir",
+          status: "pending",
+          tanggal: "TBD",
+          pic: "Tim Admin",
+          deskripsi: "Penyusunan laporan akhir.",
+          termin: [
+            {
+              id: 1,
+              nama: "Draft Laporan",
+              jenis: "dokumentasi",
+              status: "pending",
+              tanggal: "TBD",
+              file: false,
+            },
+            {
+              id: 2,
+              nama: "Pembayaran Akhir",
+              jenis: "pembayaran",
+              status: "pending",
+              tanggal: "TBD",
+              jumlah: "Rp 40.000.000",
+            },
+          ],
+        },
+      ],
+    },
+  ];
 
   useEffect(() => {
-    const fetchDetail = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:3000/program/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const headers = { Authorization: `Bearer ${token}` };
+        const resDetail = await fetch(`http://localhost:3000/program/${id}`, {
+          headers,
         });
+        const detailJson = await resDetail.json();
+        const apiData = detailJson.data || detailJson;
 
-        if (!res.ok) throw new Error("Gagal mengambil data detail program");
-
-        const result = await res.json();
-        setData(result);
-        
-        if (result.fases) {
-          const expanded = {};
-          result.fases.forEach((f, i) => {
-            expanded[i] = true;
-            if (f.kegiatans) {
-              f.kegiatans.forEach((k, j) => {
-                expanded[`${i}-${j}`] = false;
-              });
-            }
-          });
-          setExpandedFase(expanded);
-        }
+        setData({
+          ...apiData,
+          fases: dummyFases,
+          nama_sekolah: "SMK Negeri 1 Jakarta",
+          wilayah: "DKI Jakarta",
+          npsn: "20109321",
+          nama_ho: "Dr. Ahmad Budiman, M.Pd",
+          nama_ao: "Drs. Slamet Riyadi, M.Si",
+          daftar_vendor: "PT Edukasi Nusantara, CV Sarana Prima",
+        });
       } catch (err) {
-        console.error(err);
-        toast.error("Gagal memuat detail program.");
+        toast.error("Gagal mengambil data");
+        setData({
+          id_program: id,
+          nama_program: "Program Akademik",
+          fases: dummyFases,
+          nama_sekolah: "SMK Negeri 1 Jakarta",
+          wilayah: "DKI Jakarta",
+          npsn: "20109321",
+          nama_ho: "Dr. Ahmad Budiman, M.Pd",
+          nama_ao: "Drs. Slamet Riyadi, M.Si",
+          daftar_vendor: "PT Edukasi Nusantara, CV Sarana Prima",
+        });
       } finally {
         setLoading(false);
       }
     };
-
-    fetchDetail();
+    fetchData();
   }, [id]);
 
-  const toggleFaseExpand = (index) => {
-    setExpandedFase(prev => ({ ...prev, [index]: !prev[index] }));
-  };
-
-  const toggleKegExpand = (faseIndex, kegIndex) => {
-    const key = `${faseIndex}-${kegIndex}`;
-    setExpandedKeg(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const openTerminModal = (kegiatansId) => {
-    setShowTerminModal(kegiatansId);
-    setTerminForm({ nama_termin: "", deskripsi: "", jumlah_pembayaran: 0, file_dokumentasi: null });
-  };
-
-  const saveTermin = async (id_kegiatans) => {
-    try {
-      const formData = new FormData();
-      formData.append("nama_termin", terminForm.nama_termin);
-      formData.append("deskripsi", terminForm.deskripsi);
-      formData.append("jumlah_pembayaran", String(terminForm.jumlah_pembayaran));
-      if (terminForm.file_dokumentasi) {
-        formData.append("file_dokumentasi", terminForm.file_dokumentasi);
-      }
-
-      const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:3000/termin`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      if (res.ok) {
-        toast.success("Termin berhasil ditambahkan!");
-        setShowTerminModal(null);
-        window.location.reload();
-      } else {
-        toast.error("Gagal menyimpan termin");
-      }
-    } catch (err) {
-      toast.error("Error: " + err.message);
-    }
-  };
-
-  const openChatModal = async (id_termin) => {
-    setShowChatModal(id_termin);
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:3000/termin/chat/${id_termin}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setChatMessages(data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const sendChat = async () => {
-    if (!chatInput.trim()) return;
-    setSendingChat(true);
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:3000/termin/chat`, {
-        method: "POST",
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id_termin: showChatModal,
-          pesan: chatInput,
-        }),
-      });
-
-      if (res.ok) {
-        const newMsg = await res.json();
-        setChatMessages([...chatMessages, newMsg]);
-        setChatInput("");
-        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-      }
-    } catch (err) {
-      toast.error("Gagal mengirim pesan");
-    } finally {
-      setSendingChat(false);
-    }
+  const getDokumentasiCount = (termin) =>
+    termin.filter((t) => t.jenis === "dokumentasi").length;
+  const getDokumentasiCompleted = (termin) =>
+    termin.filter((t) => t.jenis === "dokumentasi" && t.status === "completed")
+      .length;
+  const getPaymentStatus = (termin) => {
+    const payments = termin.filter((t) => t.jenis === "pembayaran");
+    const completed = payments.filter((p) => p.status === "completed").length;
+    if (payments.length === 0)
+      return { text: "No Payment", color: "text-slate-400" };
+    if (completed === payments.length)
+      return { text: "Lunas", color: "text-emerald-600" };
+    if (completed > 0) return { text: "Sebagian", color: "text-amber-600" };
+    return { text: "Belum Dibayar", color: "text-red-500" };
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <p className="text-xl font-bold text-[#2E5AA7] animate-pulse">
-          Memuat Data...
-        </p>
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  if (!data) {
-    return (
-      <PageWrapper className="h-screen bg-[#EEF5FF] flex overflow-hidden !p-0">
-        <Sidebar />
-        <main className="flex-1 flex flex-col h-full overflow-hidden px-4 md:px-12 pt-6 md:pt-10 pb-0">
-          <Card className="flex-1 flex flex-col !m-0 !p-0 rounded-t-[2.5rem] rounded-b-[2.5rem] border-none shadow-2xl bg-white overflow-hidden relative">
-            <div className="px-8 pt-6 pb-6 shrink-0">
-              <header className="flex flex-row items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="relative group">
-                    <div className="absolute -inset-1 bg-red-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition animate-pulse"></div>
-                    <div className="relative p-3.5 bg-gradient-to-br from-red-500 to-red-700 rounded-2xl text-white shadow-xl">
-                      <Info size={22} strokeWidth={2} />
-                    </div>
-                  </div>
-                  <div className="flex flex-col -space-y-1">
-                    <Label
-                      text="Data Tidak Ditemukan"
-                      className="!text-[8px] !text-red-500 !font-black tracking-[0.3em] !mb-1 uppercase"
-                    />
-                    <h1 className="text-xl font-black text-gray-800 tracking-tight uppercase leading-none">
-                      Program <span className="text-red-500">Tidak Ada</span>
-                    </h1>
-                  </div>
-                </div>
-                <Button
-                  text="← Kembali"
-                  icon={<ArrowLeft size={14} />}
-                  onClick={() => navigate("/ho/program/akademik")}
-                  className="group !bg-gray-600 hover:!bg-gray-700 !rounded-xl !px-5 !py-2.5 !text-[10px] font-black text-white shadow-lg active:scale-95 transition-all flex items-center gap-2"
-                />
-              </header>
-            </div>
-            <div className="flex-1 overflow-hidden flex flex-col px-10 pb-4">
-              <div className="flex-1 bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col shadow-sm">
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                  <div className="flex flex-col items-center justify-center h-full py-20 opacity-20 text-gray-900">
-                    <Info size={40} className="mb-2" />
-                    <p className="text-xs font-black uppercase tracking-widest">
-                      Data Program Tidak Ditemukan
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </main>
-      </PageWrapper>
-    );
-  }
+  if (!data) return null;
+
+  const currentFase = data.fases[selectedPhaseIndex];
+  const kegiatanList = currentFase?.kegiatan || [];
+  const selectedKegiatanData = kegiatanList.find(
+    (k) => k.id === selectedKegiatan?.id,
+  );
 
   return (
-    <PageWrapper className="h-screen bg-[#EEF5FF] flex overflow-hidden !p-0">
+    <PageWrapper className="h-screen overflow-hidden flex bg-white !p-0 font-sans">
       <Sidebar />
-      <main className="flex-1 flex flex-col h-full overflow-hidden px-4 md:px-12 pt-6 md:pt-10 pb-0">
-        <Card className="flex-1 flex flex-col !m-0 !p-0 rounded-t-[2.5rem] rounded-b-[2.5rem] border-none shadow-2xl bg-white overflow-hidden relative">
-          <div className="px-8 pt-6 pb-6 shrink-0">
-            <header className="flex flex-row items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-blue-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition animate-pulse"></div>
-                  <div className="relative p-3.5 bg-gradient-to-br from-[#2E5AA7] to-[#164a8a] rounded-2xl text-white shadow-xl">
-                    <FileText size={22} strokeWidth={2} />
-                  </div>
-                </div>
-                <div className="flex flex-col -space-y-1">
-                  <Label
-                    text="Sistem Monitoring dan Evaluasi Program"
-                    className="!text-[8px] !text-[#1E5AA5] !font-black tracking-[0.3em] !mb-1 uppercase"
-                  />
-                  <h1 className="text-xl font-black text-gray-800 tracking-tight uppercase leading-none">
-                    Detail Program{" "}
-                    <span className="text-[#2E5AA7]">Akademik</span>
-                  </h1>
-                </div>
+      <main className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* HEADER */}
+        <header className="shrink-0 bg-white border-b border-slate-100 px-6 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
+                <BarChart3 size={18} className="text-white" />
               </div>
-              <div className="flex items-center gap-3">
-                <span
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border ${
-                    data.status_program === "Aktif"
-                      ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                      : "bg-amber-50 text-amber-600 border-amber-100"
-                  }`}
-                >
-                  {data.status_program || "Draft"}
-                </span>
-                <Button
-                  text="← Kembali"
-                  icon={<ArrowLeft size={14} />}
-                  onClick={() => navigate("/ho/program/akademik")}
-                  className="group !bg-gray-600 hover:!bg-gray-700 !rounded-xl !px-5 !py-2.5 !text-[10px] font-black text-white shadow-lg active:scale-95 transition-all flex items-center gap-2"
-                />
+              <div>
+                <h1 className="text-lg font-bold text-slate-800">
+                  {data.nama_program}
+                </h1>
+                <p className="text-[10px] text-slate-400">
+                  ID: {data.id_program} • NPSN: {data.npsn}
+                </p>
               </div>
-            </header>
+            </div>
+            <Button
+              text="Back"
+              icon={<ArrowLeft size={14} />}
+              onClick={() => navigate(-1)}
+              className="!bg-white !text-slate-600 !border !border-slate-200 !rounded-lg !px-3 !py-1.5 !text-[11px]"
+            />
+          </div>
 
-            <div className="flex flex-row items-center gap-3 mb-6">
-              <div className="flex items-center gap-3 px-5 py-2.5 bg-blue-50 text-[#1E5AA5] rounded-xl border border-blue-100 font-black text-[9px] uppercase tracking-[0.2em] shrink-0">
-                <FileText size={14} /> Program: {data.nama_program}
+          <div className="grid grid-cols-4 gap-4 text-left">
+            <div>
+              <p className="text-[9px] font-medium text-slate-400 uppercase">
+                Sekolah
+              </p>
+              <p className="text-xs font-semibold text-slate-800">
+                {data.nama_sekolah}
+              </p>
+              <p className="text-[10px] text-slate-400">{data.wilayah}</p>
+            </div>
+            <div>
+              <p className="text-[9px] font-medium text-slate-400 uppercase">
+                Penanggung Jawab
+              </p>
+              <p className="text-xs font-semibold text-slate-800">
+                {data.nama_ho}
+              </p>
+              <p className="text-[10px] text-slate-400">AO: {data.nama_ao}</p>
+            </div>
+            <div>
+              <p className="text-[9px] font-medium text-slate-400 uppercase">
+                Mitra
+              </p>
+              <p className="text-xs font-semibold text-slate-800">
+                {data.daftar_vendor}
+              </p>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText size={14} className="text-slate-400" />
+                <span className="text-xs text-slate-600">
+                  {data.file_mou || "MOU_2024.pdf"}
+                </span>
               </div>
-              <div className="flex items-center gap-3 px-5 py-2.5 bg-gray-50 text-gray-600 rounded-xl border border-gray-100 font-black text-[9px] uppercase tracking-[0.2em] shrink-0">
-                <LayoutDashboard size={14} /> Kode: {data.kode_program}
+              <button className="text-slate-400 hover:text-slate-600">
+                <Download size={14} />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* MAIN CONTENT */}
+        <div className="flex-1 flex overflow-hidden p-6 gap-6">
+          {/* LEFT SIDEBAR - LIST KEGIATAN (bukan fase) */}
+          <div className="w-80 bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col shrink-0">
+            <div className="p-3 border-b border-slate-100 bg-slate-50/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FolderOpen size={12} className="text-blue-500" />
+                  <span className="text-[10px] font-semibold text-slate-500 uppercase">
+                    Kegiatan
+                  </span>
+                </div>
+                <span className="text-[9px] text-slate-400">
+                  {currentFase.nama_fase} • {kegiatanList.length} item
+                </span>
               </div>
+            </div>
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
+              {kegiatanList.map((keg, idx) => {
+                const docComplete = getDokumentasiCompleted(keg.termin);
+                const docTotal = getDokumentasiCount(keg.termin);
+                const payment = getPaymentStatus(keg.termin);
+
+                return (
+                  <button
+                    key={keg.id}
+                    onClick={() => setSelectedKegiatan(keg)}
+                    className={`w-full p-3 text-left transition-all ${
+                      selectedKegiatan?.id === keg.id
+                        ? "bg-blue-50/50 border-l-2 border-l-blue-500"
+                        : "hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold mt-0.5 ${
+                          keg.status === "completed"
+                            ? "bg-emerald-100 text-emerald-600"
+                            : keg.status === "in-progress"
+                              ? "bg-blue-100 text-blue-600"
+                              : "bg-slate-100 text-slate-400"
+                        }`}
+                      >
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-medium text-slate-700 truncate">
+                          {keg.nama_kegiatan}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[8px] text-slate-400">
+                            {keg.tanggal}
+                          </span>
+                          <span className="text-[8px] text-slate-400">•</span>
+                          <span className="text-[8px] text-slate-400">
+                            {keg.pic}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="text-[7px] font-medium text-blue-600 bg-blue-50 px-1 py-0.5 rounded">
+                            📄 {docComplete}/{docTotal}
+                          </span>
+                          <span
+                            className={`text-[7px] font-medium px-1 py-0.5 rounded ${payment.color} bg-slate-50`}
+                          >
+                            💰 {payment.text}
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronRight
+                        size={12}
+                        className={`text-slate-300 mt-2 ${selectedKegiatan?.id === keg.id ? "text-blue-500" : ""}`}
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+              {kegiatanList.length === 0 && (
+                <div className="p-6 text-center">
+                  <p className="text-[10px] text-slate-400">
+                    Belum ada kegiatan
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden flex flex-col px-10 pb-4">
-            <div className="flex-1 bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col shadow-sm">
-              <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Informasi Utama */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 pb-3 border-b-2 border-blue-100">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        <Info size={20} className="text-blue-600" />
+          {/* RIGHT - DETAIL TERMIN */}
+          <div className="flex-1 flex flex-col gap-5 overflow-hidden">
+            {/* INFO FASE SAAT INI */}
+            <div className="bg-white border border-slate-100 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[9px] font-medium text-slate-400 uppercase">
+                      Fase Saat Ini
+                    </span>
+                    <span
+                      className={`text-[8px] font-medium px-1.5 py-0.5 rounded ${
+                        currentFase.status === "completed"
+                          ? "bg-emerald-50 text-emerald-600"
+                          : currentFase.status === "active"
+                            ? "bg-blue-50 text-blue-600"
+                            : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {currentFase.status === "completed"
+                        ? "Selesai"
+                        : currentFase.status === "active"
+                          ? "Berjalan"
+                          : "Belum Mulai"}
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-800">
+                    {currentFase.nama_fase}
+                  </h2>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {currentFase.tanggal} • Progress {currentFase.progress}%
+                  </p>
+                </div>
+                <div className="w-32">
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full">
+                    <div
+                      className="h-full bg-blue-500 rounded-full"
+                      style={{ width: `${currentFase.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* DETAIL TERMIN DARI KEGIATAN YANG DIPILIH */}
+            {selectedKegiatanData ? (
+              <div className="flex-1 bg-white border border-slate-100 rounded-xl overflow-hidden flex flex-col">
+                <div className="p-4 border-b border-slate-100 bg-slate-50/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className={`text-[8px] font-medium px-1.5 py-0.5 rounded ${
+                            selectedKegiatanData.status === "completed"
+                              ? "bg-emerald-50 text-emerald-600"
+                              : selectedKegiatanData.status === "in-progress"
+                                ? "bg-blue-50 text-blue-600"
+                                : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          {selectedKegiatanData.status === "completed"
+                            ? "Selesai"
+                            : selectedKegiatanData.status === "in-progress"
+                              ? "Berjalan"
+                              : "Menunggu"}
+                        </span>
+                        <span className="text-[9px] text-slate-400">
+                          Target: {selectedKegiatanData.tanggal}
+                        </span>
                       </div>
-                      <h3 className="text-lg font-black text-gray-800 uppercase tracking-wide">
-                        Informasi Utama
+                      <h3 className="text-sm font-bold text-slate-800">
+                        {selectedKegiatanData.nama_kegiatan}
                       </h3>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <User
-                          size={16}
-                          className="text-gray-400 mt-1 flex-shrink-0"
-                        />
-                        <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                            Head Office
-                          </p>
-                          <p className="text-sm font-bold text-gray-800">
-                            {data.nama_pembuat || "-"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <MapPin
-                          size={16}
-                          className="text-gray-400 mt-1 flex-shrink-0"
-                        />
-                        <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                            Sekolah Tujuan
-                          </p>
-                          <p className="text-sm font-bold text-gray-800">
-                            {data.nama_sekolah || "-"}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {data.nama_kota || "-"}, {data.nama_provinsi || "-"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <Briefcase
-                          size={16}
-                          className="text-gray-400 mt-1 flex-shrink-0"
-                        />
-                        <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                            Area Officer
-                          </p>
-                          <p className="text-sm font-bold text-gray-800">
-                            {data.nama_pengawas || "-"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <LayoutDashboard
-                          size={16}
-                          className="text-gray-400 mt-1 flex-shrink-0"
-                        />
-                        <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                            Vendor
-                          </p>
-                          <p className="text-sm font-bold text-gray-800">
-                            {data.nama_vendor || "Tidak menggunakan vendor"}
-                          </p>
-                        </div>
-                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        PIC: {selectedKegiatanData.pic}
+                      </p>
                     </div>
                   </div>
+                </div>
 
-                  {/* Detail Pelaksanaan */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 pb-3 border-b-2 border-blue-100">
-                      <div className="p-2 bg-green-50 rounded-lg">
-                        <Calendar size={20} className="text-green-600" />
-                      </div>
-                      <h3 className="text-lg font-black text-gray-800 uppercase tracking-wide">
-                        Detail Pelaksanaan
-                      </h3>
-                    </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {/* Deskripsi */}
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <p className="text-[11px] text-slate-600">
+                      {selectedKegiatanData.deskripsi}
+                    </p>
+                  </div>
 
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-start gap-3">
-                          <Calendar
-                            size={16}
-                            className="text-gray-400 mt-1 flex-shrink-0"
-                          />
-                          <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                              Tahun
-                            </p>
-                            <p className="text-sm font-bold text-gray-800">
-                              {data.tahun || "-"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <Calendar
-                            size={16}
-                            className="text-gray-400 mt-1 flex-shrink-0"
-                          />
-                          <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                              Tanggal Mulai
-                            </p>
-                            <p className="text-sm font-bold text-gray-800">
-                              {data.tanggal_mulai
-                                ? new Date(
-                                    data.tanggal_mulai,
-                                  ).toLocaleDateString("id-ID")
-                                : "-"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <FileText
-                          size={16}
-                          className="text-gray-400 mt-1 flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
-                            Deskripsi
-                          </p>
-                          <div className="bg-gray-50 p-4 rounded-xl border text-sm text-gray-700 min-h-[100px]">
-                            {data.deskripsi || "Tidak ada deskripsi."}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <Download
-                          size={16}
-                          className="text-gray-400 mt-1 flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
-                            Dokumen MOU
-                          </p>
-                          {data.file_mou_nama ? (
-                            <div className="flex items-center justify-between bg-blue-50 border border-blue-200 p-4 rounded-xl">
-                              <div className="flex items-center gap-3 overflow-hidden">
-                                <FileText
-                                  size={20}
-                                  className="text-blue-500 flex-shrink-0"
+                  {/* DAFTAR TERMIN (Checkpoint) */}
+                  <div>
+                    <p className="text-[9px] font-medium text-slate-400 uppercase mb-2">
+                      Termin & Checkpoint
+                    </p>
+                    <div className="space-y-2">
+                      {selectedKegiatanData.termin.map((term, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                            term.status === "completed"
+                              ? "border-emerald-100 bg-emerald-50/20"
+                              : term.status === "in-progress"
+                                ? "border-blue-100 bg-blue-50/20"
+                                : "border-slate-100"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                                term.jenis === "dokumentasi"
+                                  ? "bg-blue-100"
+                                  : "bg-amber-100"
+                              }`}
+                            >
+                              {term.jenis === "dokumentasi" ? (
+                                term.status === "completed" ? (
+                                  <FileCheck
+                                    size={12}
+                                    className="text-blue-600"
+                                  />
+                                ) : (
+                                  <FileText
+                                    size={12}
+                                    className="text-blue-400"
+                                  />
+                                )
+                              ) : term.status === "completed" ? (
+                                <CheckCircle2
+                                  size={12}
+                                  className="text-emerald-600"
                                 />
-                                <span className="text-sm text-blue-700 font-bold truncate">
-                                  {data.file_mou_nama}
-                                </span>
-                              </div>
-                              <a
-                                href={`http://localhost:3000/${data.file_mou_path}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm"
-                              >
-                                Lihat
-                              </a>
+                              ) : (
+                                <CreditCard
+                                  size={12}
+                                  className="text-amber-500"
+                                />
+                              )}
                             </div>
-                          ) : (
-                            <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl">
-                              <p className="text-sm text-gray-500 italic">
-                                Belum ada dokumen MOU yang diunggah.
+                            <div>
+                              <p className="text-[11px] font-medium text-slate-700">
+                                {term.nama}
+                              </p>
+                              <p className="text-[8px] text-slate-400">
+                                {term.tanggal}
+                                {term.jumlah && ` • ${term.jumlah}`}
                               </p>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fase & Kegiatan Flow */}
-                  {data.fases && data.fases.length > 0 && (
-                    <div className="mt-8 pt-6 border-t border-gray-200">
-                      <div className="flex items-center gap-3 pb-3 mb-6">
-                        <div className="p-2 bg-purple-50 rounded-lg">
-                          <LayoutDashboard size={20} className="text-purple-600" />
-                        </div>
-                        <h3 className="text-lg font-black text-gray-800 uppercase tracking-wide">
-                          Fase & Kegiatan Program
-                        </h3>
-                      </div>
-
-                      <div className="space-y-4">
-                        {data.fases.map((fase, faseIndex) => (
-                          <div key={fase.id_fase} className="border border-gray-200 rounded-xl overflow-hidden">
-                            <div
-                              className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100"
-                              onClick={() => toggleFaseExpand(faseIndex)}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm">
-                                  {faseIndex + 1}
-                                </div>
-                                <div>
-                                  <p className="font-black text-gray-800">{fase.nama_fase}</p>
-                                  <p className="text-[10px] text-gray-500">
-                                    {fase.kegiatans?.length || 0} Kegiatan
-                                  </p>
-                                </div>
-                              </div>
-                              <ChevronRight
-                                size={18}
-                                className={`text-gray-400 transition-transform ${
-                                  expandedFase[faseIndex] ? "rotate-90" : ""
-                                }`}
-                              />
-                            </div>
-
-                            {expandedFase[faseIndex] && fase.kegiatans && (
-                              <div className="p-4 bg-white border-t border-gray-200 space-y-3">
-                                {fase.kegiatans.map((keg, kegIndex) => {
-                                  const kegKey = `${faseIndex}-${kegIndex}`;
-                                  return (
-                                    <div key={keg.id_kegiatans} className="border border-gray-100 rounded-lg overflow-hidden">
-                                      <div
-                                        className="flex items-center justify-between px-3 py-2 bg-orange-50 cursor-pointer"
-                                        onClick={() => toggleKegExpand(faseIndex, kegIndex)}
-                                      >
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-6 h-6 rounded-md bg-orange-500 text-white flex items-center justify-center font-black text-[10px]">
-                                            {kegIndex + 1}
-                                          </div>
-                                          <span className="font-bold text-gray-700 text-sm">
-                                            {keg.nama_kegiatans}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <Button
-                                            text="Tambah Termin"
-                                            icon={<PlusCircle size={10} />}
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              openTerminModal(keg.id_kegiatans);
-                                            }}
-                                            className="!bg-green-50 !text-green-600 hover:!bg-green-600 hover:!text-white !rounded-md !px-2 !py-1 !text-[8px] font-bold"
-                                          />
-                                          <ChevronDown
-                                            size={14}
-                                            className={`text-gray-400 transition-transform ${
-                                              expandedKeg[kegKey] ? "rotate-180" : ""
-                                            }`}
-                                          />
-                                        </div>
-                                      </div>
-
-                                      {expandedKeg[kegKey] && (
-                                        <div className="p-3 bg-white border-t border-gray-100">
-                                          <div className="space-y-2">
-                                            {keg.termin && keg.termin.length > 0 ? (
-                                              keg.termin.map((term, termIndex) => (
-                                                <div key={term.id_termin} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
-                                                  <div className="flex-1">
-                                                    <div className="flex items-center justify-between">
-                                                      <p className="font-bold text-gray-800 text-sm">
-                                                        Termin {termIndex + 1}: {term.nama_termin}
-                                                      </p>
-                                                      <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
-                                                        term.status === 'approved' ? 'bg-green-100 text-green-600' :
-                                                        term.status === 'rejected' ? 'bg-red-100 text-red-600' :
-                                                        'bg-amber-100 text-amber-600'
-                                                      }`}>
-                                                        {term.status}
-                                                      </span>
-                                                    </div>
-                                                    {term.deskripsi && (
-                                                      <p className="text-[10px] text-gray-500 mt-1">{term.deskripsi}</p>
-                                                    )}
-                                                    <div className="flex items-center gap-4 mt-2">
-                                                      {term.jumlah_pembayaran > 0 && (
-                                                        <p className="text-[10px] font-black text-blue-600 flex items-center gap-1">
-                                                          <DollarSign size={10} />
-                                                          {Number(term.jumlah_pembayaran).toLocaleString("id-ID")}
-                                                        </p>
-                                                      )}
-                                                      {term.nama_file_dokumentasi && (
-                                                        <a
-                                                          href={`http://localhost:3000/uploads/dokumentasi/${term.file_dokumentasi}`}
-                                                          target="_blank"
-                                                          className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"
-                                                        >
-                                                          <File size={10} /> Dokumen
-                                                        </a>
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                  <Button
-                                                    text="Chat"
-                                                    icon={<MessageCircle size={10} />}
-                                                    onClick={() => openChatModal(term.id_termin)}
-                                                    className="!bg-blue-50 !text-blue-600 hover:!bg-blue-600 hover:!text-white !rounded-md !px-2 !py-1 !text-[8px] font-bold"
-                                                  />
-                                                </div>
-                                              ))
-                                            ) : (
-                                              <p className="text-[10px] text-gray-400 italic text-center py-2">
-                                                Belum ada termin
-                                              </p>
-                                            )}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {term.status === "completed" && (
+                              <span className="text-[7px] font-medium text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded">
+                                Selesai
+                              </span>
+                            )}
+                            {term.status === "in-progress" && (
+                              <span className="text-[7px] font-medium text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">
+                                Proses
+                              </span>
+                            )}
+                            {term.status === "pending" && (
+                              <span className="text-[7px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                                Menunggu
+                              </span>
+                            )}
+                            {term.file && (
+                              <button className="p-1 text-slate-400 hover:text-slate-600">
+                                <Download size={10} />
+                              </button>
                             )}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
-                  <Button
-                    text="Edit Program"
-                    icon={<Edit3 size={14} />}
-                    onClick={() =>
-                      navigate(`/ho/program/akademik/edit/${data.id_program}`)
-                    }
-                    className="!bg-amber-50 !text-amber-600 hover:!bg-amber-600 hover:!text-white !rounded-xl !px-6 !py-3 !text-sm font-black transition-all shadow-sm"
-                  />
-                  <Button
-                    text="Kelola Kegiatan"
-                    icon={<LayoutDashboard size={14} />}
-                    onClick={() =>
-                      navigate(
-                        `/ho/program/akademik/calendar/${data.id_program}`,
-                      )
-                    }
-                    className="!bg-blue-50 !text-blue-600 hover:!bg-blue-600 hover:!text-white !rounded-xl !px-6 !py-3 !text-sm font-black transition-all shadow-sm"
-                  />
-                </div>
-
-                {/* Termin Modal */}
-                {showTerminModal && (
-                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
-                      <h3 className="text-lg font-black text-gray-800 mb-4">Tambah Termin</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <Label text="Nama Termin" />
-                          <Input
-                            value={terminForm.nama_termin}
-                            onChange={(e) => setTerminForm({...terminForm, nama_termin: e.target.value})}
-                            placeholder="cth: Termin 1 - Pembayaran Pertama"
-                          />
                         </div>
-                        <div>
-                          <Label text="Deskripsi" />
-                          <textarea
-                            className="w-full bg-gray-50 border-none rounded-xl p-3 text-sm"
-                            value={terminForm.deskripsi}
-                            onChange={(e) => setTerminForm({...terminForm, deskripsi: e.target.value})}
-                            placeholder="Deskripsi termin..."
-                          />
-                        </div>
-                        <div>
-                          <Label text="Jumlah Pembayaran (Rp)" />
-                          <Input
-                            type="number"
-                            value={terminForm.jumlah_pembayaran}
-                            onChange={(e) => setTerminForm({...terminForm, jumlah_pembayaran: e.target.value})}
-                            placeholder="0"
-                          />
-                        </div>
-                        <div>
-                          <Label text="Upload Dokumentasi" />
-                          <input
-                            type="file"
-                            className="w-full text-sm"
-                            onChange={(e) => setTerminForm({...terminForm, file_dokumentasi: e.target.files[0]})}
-                          />
-                        </div>
-                        <div className="flex gap-3 pt-2">
-                          <Button
-                            text="Batal"
-                            onClick={() => setShowTerminModal(null)}
-                            className="!bg-gray-100 !text-gray-600 !flex-1 !rounded-xl"
-                          />
-                          <Button
-                            text="Simpan"
-                            onClick={() => saveTermin(showTerminModal)}
-                            className="!bg-green-600 !text-white !flex-1 !rounded-xl"
-                          />
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
-                )}
 
-                {/* Chat Modal */}
-                {showChatModal && (
-                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl flex flex-col" style={{height: "70vh"}}>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-black text-gray-800">Chat HO - AO</h3>
-                        <button onClick={() => setShowChatModal(null)} className="text-gray-400 hover:text-gray-600">
-                          <X size={20} />
-                        </button>
-                      </div>
-                      <div className="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-50 rounded-xl mb-4">
-                        {chatMessages.length === 0 ? (
-                          <p className="text-center text-gray-400 text-sm py-8">Belum ada pesan. Mulai percakapan!</p>
-                        ) : (
-                          chatMessages.map((msg, i) => (
-                            <div key={i} className={`flex ${msg.role_user === 'HO' ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-[80%] p-3 rounded-xl ${msg.role_user === 'HO' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                                <p className="text-xs font-bold mb-1">{msg.nama_user}</p>
-                                <p className="text-sm">{msg.pesan}</p>
-                                <p className="text-[8px] opacity-70 mt-1">
-                                  {new Date(msg.created_at).toLocaleString("id-ID")}
-                                </p>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                        <div ref={chatEndRef} />
-                      </div>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={chatInput}
-                          onChange={(e) => setChatInput(e.target.value)}
-                          placeholder="Tulis pesan..."
-                          className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 text-sm"
-                          onKeyPress={(e) => e.key === "Enter" && sendChat()}
-                        />
-                        <Button
-                          text={<Send size={16} />}
-                          onClick={sendChat}
-                          disabled={sendingChat}
-                          className="!bg-purple-600 !text-white !rounded-xl !px-4"
-                        />
-                      </div>
+                  {/* Summary */}
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <div className="p-3 bg-slate-50 rounded-lg text-center">
+                      <p className="text-[8px] font-medium text-slate-400 uppercase">
+                        Dokumen
+                      </p>
+                      <p className="text-xl font-bold text-blue-600">
+                        {getDokumentasiCompleted(selectedKegiatanData.termin)}/
+                        {getDokumentasiCount(selectedKegiatanData.termin)}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg text-center">
+                      <p className="text-[8px] font-medium text-slate-400 uppercase">
+                        Pembayaran
+                      </p>
+                      <p
+                        className={`text-sm font-bold ${getPaymentStatus(selectedKegiatanData.termin).color}`}
+                      >
+                        {getPaymentStatus(selectedKegiatanData.termin).text}
+                      </p>
                     </div>
                   </div>
-                )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 bg-white border border-slate-100 rounded-xl flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <FolderOpen size={20} className="text-slate-300" />
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Pilih kegiatan untuk melihat termin
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* ========== CHEVRON PROGRESS INDICATOR (6 STEP) ========== */}
+            <div className="bg-white border border-slate-100 rounded-xl p-4 overflow-x-auto">
+              <div className="flex items-center justify-between min-w-[600px]">
+                {data.fases.map((fase, index) => {
+                  const isCompleted = fase.status === "completed";
+                  const isActive = fase.status === "active";
+
+                  return (
+                    <div key={index} className="flex items-center">
+                      {index !== 0 && (
+                        <div
+                          className="w-10 h-[2px] bg-slate-200 mr-[-6px] z-0"
+                          style={{
+                            clipPath:
+                              "polygon(0% 0%, 92% 0%, 100% 50%, 92% 100%, 0% 100%)",
+                          }}
+                        ></div>
+                      )}
+                      <div
+                        className={`relative flex flex-col items-center cursor-pointer transition-all duration-300 z-10 ${
+                          selectedPhaseIndex === index ? "scale-110" : ""
+                        }`}
+                        onClick={() => {
+                          setSelectedPhaseIndex(index);
+                          setSelectedKegiatan(null);
+                        }}
+                      >
+                        <div
+                          className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                            isCompleted
+                              ? "bg-emerald-500 text-white shadow-md"
+                              : isActive
+                                ? "bg-blue-600 text-white shadow-md ring-4 ring-blue-100"
+                                : "bg-white text-slate-400 border-2 border-slate-200"
+                          }`}
+                        >
+                          {isCompleted ? (
+                            <Check size={18} />
+                          ) : isActive ? (
+                            <Activity size={16} className="animate-pulse" />
+                          ) : (
+                            String(index + 1).padStart(2, "0")
+                          )}
+                        </div>
+                        <p
+                          className={`text-[9px] font-semibold mt-1.5 ${
+                            selectedPhaseIndex === index
+                              ? "text-blue-600"
+                              : "text-slate-400"
+                          }`}
+                        >
+                          {fase.nama_fase.substring(0, 5)}
+                        </p>
+                        <p className="text-[7px] text-slate-300">
+                          {fase.progress}%
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       </main>
     </PageWrapper>
   );

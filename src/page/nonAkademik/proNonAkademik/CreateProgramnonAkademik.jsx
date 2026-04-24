@@ -50,7 +50,7 @@ function CreateProgramnonAkademik() {
   const [deskripsi, setDeskripsi] = useState("");
   const [kpi, setKpi] = useState("");
   const [selectedVendor, setSelectedVendor] = useState("");
-const [tahun, setTahun] = useState(new Date().getFullYear());
+  const [tahun, setTahun] = useState(new Date().getFullYear());
   const [fileMou, setFileMou] = useState(null);
   const [openDrop, setOpenDrop] = useState(null);
   const [kegiatan, setKubernetes] = useState([
@@ -181,10 +181,12 @@ const [tahun, setTahun] = useState(new Date().getFullYear());
   const removeActivitiesFromFase = (faseIndex, kegIndex) => {
     const newFases = [...fases];
     newFases[faseIndex].kegiatans.splice(kegIndex, 1);
-    setFases(newFases.map((f) => ({
-      ...f,
-      kegiatans: f.kegiatans.map((k, i) => ({ ...k, urutan: i + 1 })),
-    })));
+    setFases(
+      newFases.map((f) => ({
+        ...f,
+        kegiatans: f.kegiatans.map((k, i) => ({ ...k, urutan: i + 1 })),
+      })),
+    );
   };
 
   const updateActivities = (faseIndex, kegIndex, field, value) => {
@@ -193,49 +195,67 @@ const [tahun, setTahun] = useState(new Date().getFullYear());
     setFases(newFases);
   };
 
-const saveProgram = async () => {
+  const saveProgram = async () => {
+    // 1. Validasi Input Dasar
     if (!namaProgram || !selectedAO || !tahun || !fileMou) {
       return toast.error("Lengkapi data yang wajib diisi!");
     }
 
-    const validFases = fases.filter(f => f.nama_fase.trim() !== "");
-    const hasValidKegiatans = validFases.some(f => 
-      f.kegiatans.some(k => k.nama_kegiatans.trim() !== "")
-    );
-    
-    if (validFases.length === 0 || !hasValidKegiatans) {
-      return toast.error("Tambahkan minimal 1 fase dengan 1 kegiatan!");
+    // 2. Filter hanya fase yang ada namanya, dan pastikan setiap fase punya kegiatan yang ada namanya
+    const validFases = fases
+      .filter((f) => f && f.nama_fase && f.nama_fase.trim() !== "")
+      .map((f, i) => ({
+        nama_fase: f.nama_fase.trim(), // Trim di sini juga
+        deskripsi: f.deskripsi || "",
+        urutan: i + 1,
+        kegiatans: (f.kegiatans || [])
+          .filter(
+            (k) => k && k.nama_kegiatans && k.nama_kegiatans.trim() !== "",
+          )
+          .map((k, ki) => ({
+            nama_kegiatans: k.nama_kegiatans.trim(),
+            deskripsi: k.deskripsi || "",
+            urutan: ki + 1,
+          })),
+      }));
+
+    if (validFases.length === 0) {
+      return toast.error("Tambahkan minimal 1 Nama Fase!");
+    }
+
+    const hasKegiatan = validFases.some((f) => f.kegiatans.length > 0);
+    if (!hasKegiatan) {
+      return toast.error("Setiap fase minimal harus memiliki 1 kegiatan!");
     }
 
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
       const formData = new FormData();
+
+      // Append Data String & Number
       formData.append("nama_program", namaProgram);
       formData.append("deskripsi", deskripsi);
       formData.append("kpi", kpi);
-      formData.append("tahun", tahun);
-      formData.append("id_user_ao", selectedAO);
-      formData.append("id_sekolah", selectedSekolah || null);
-      formData.append("id_vendor", selectedVendor || null);
+      formData.append("tahun", tahun.toString());
+      formData.append("id_pengawas", selectedAO); // Di backend ini id_pengawas
+      formData.append("id_sekolah", selectedSekolah || "");
+      formData.append("id_vendor", selectedVendor || "");
       formData.append("kategori", "NON_AKADEMIK");
-      if (fileMou) formData.append("mou", fileMou);
+      formData.append("status_program", "Draft");
 
-      const fasesData = validFases.map((f) => ({
-        nama_fase: f.nama_fase,
-        deskripsi: f.deskripsi || "",
-        urutan: f.urutan,
-        kegiatans: f.kegiatans.filter(k => k.nama_kegiatans.trim() !== "").map((k, i) => ({
-          nama_kegiatans: k.nama_kegiatans,
-          deskripsi: k.deskripsi || "",
-          urutan: i + 1,
-        })),
-      }));
-      formData.append("fases", JSON.stringify(fasesData));
+      // ✨ PENTING: Gunakan key "file_mou" agar sinkron dengan Backend (Interceptor)
+      if (fileMou) formData.append("file_mou", fileMou);
+
+      // ✨ PENTING: Gunakan JSON.stringify agar @Transform di Backend bisa bekerja
+      formData.append("fases", JSON.stringify(validFases));
 
       const r = await fetch("http://localhost:3000/program", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Jangan set 'Content-Type': 'application/json' di sini karena pakai FormData
+        },
         body: formData,
       });
 
@@ -244,8 +264,10 @@ const saveProgram = async () => {
         navigate("/ho/program/non-akademik");
       } else {
         const body = await r.json();
-        throw new Error(body.message || "Gagal menyimpan program");
+        toast.error(body.message || "Gagal menyimpan program");
       }
+    } catch (error) {
+      toast.error("Terjadi kesalahan server");
     } finally {
       setLoading(false);
     }
@@ -661,32 +683,97 @@ const saveProgram = async () => {
 
                   <div className="space-y-4">
                     {fases.map((fase, faseIndex) => (
-                      <div key={faseIndex} className="border border-gray-200 rounded-xl overflow-hidden">
-                        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer" onClick={() => toggleFaseExpand(faseIndex)}>
+                      <div
+                        key={faseIndex}
+                        className="border border-gray-200 rounded-xl overflow-hidden"
+                      >
+                        <div
+                          className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer"
+                          onClick={() => toggleFaseExpand(faseIndex)}
+                        >
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-black text-sm">
                               {faseIndex + 1}
                             </div>
-                            <input type="text" placeholder={`Nama Fase ${faseIndex + 1}`} value={fase.nama_fase} onChange={(e) => updateFase(faseIndex, "nama_fase", e.target.value)} className="bg-transparent border-none font-black text-gray-800 placeholder-gray-400 focus:ring-0 w-48" />
+                            <input
+                              type="text"
+                              placeholder={`Nama Fase ${faseIndex + 1}`}
+                              value={fase.nama_fase}
+                              onChange={(e) =>
+                                updateFase(
+                                  faseIndex,
+                                  "nama_fase",
+                                  e.target.value,
+                                )
+                              }
+                              className="bg-transparent border-none font-black text-gray-800 placeholder-gray-400 focus:ring-0 w-48"
+                            />
                           </div>
                           <div className="flex items-center gap-2">
-                            <button onClick={(e) => { e.stopPropagation(); removeFase(faseIndex); }} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
-                            <ChevronRight size={18} className={`text-gray-400 transition-transform ${expandedFase[faseIndex] ? "rotate-90" : ""}`} />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFase(faseIndex);
+                              }}
+                              className="text-red-400 hover:text-red-600 p-1"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                            <ChevronRight
+                              size={18}
+                              className={`text-gray-400 transition-transform ${expandedFase[faseIndex] ? "rotate-90" : ""}`}
+                            />
                           </div>
                         </div>
 
                         {expandedFase[faseIndex] && (
                           <div className="p-4 bg-white border-t border-gray-200 space-y-3">
                             <div className="flex items-center justify-between pt-2">
-                              <h4 className="text-xs font-black text-gray-500 uppercase"> kegiatan ({fase.kegiatans.length})</h4>
-                              <button onClick={() => addActivitiesToFase(faseIndex)} className="text-xs font-black text-blue-600 hover:text-blue-700">+ Tambah Kegiatan</button>
+                              <h4 className="text-xs font-black text-gray-500 uppercase">
+                                {" "}
+                                kegiatan ({fase.kegiatans.length})
+                              </h4>
+                              <button
+                                onClick={() => addActivitiesToFase(faseIndex)}
+                                className="text-xs font-black text-blue-600 hover:text-blue-700"
+                              >
+                                + Tambah Kegiatan
+                              </button>
                             </div>
                             <div className="space-y-2">
                               {fase.kegiatans.map((keg, kegIndex) => (
-                                <div key={kegIndex} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                                  <div className="w-6 h-6 rounded-md bg-orange-500 text-white flex items-center justify-center font-black text-[10px]">{kegIndex + 1}</div>
-                                  <input type="text" placeholder={`Nama Kegiatan ${kegIndex + 1}`} value={keg.nama_kegiatans} onChange={(e) => updateActivities(faseIndex, kegIndex, "nama_kegiatans", e.target.value)} className="flex-1 bg-transparent border-none font-bold text-gray-700 placeholder-gray-400 focus:ring-0 text-sm" />
-                                  <button onClick={() => removeActivitiesFromFase(faseIndex, kegIndex)} className="text-red-400 hover:text-red-600"><Trash2 size={14} /></button>
+                                <div
+                                  key={kegIndex}
+                                  className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg"
+                                >
+                                  <div className="w-6 h-6 rounded-md bg-orange-500 text-white flex items-center justify-center font-black text-[10px]">
+                                    {kegIndex + 1}
+                                  </div>
+                                  <input
+                                    type="text"
+                                    placeholder={`Nama Kegiatan ${kegIndex + 1}`}
+                                    value={keg.nama_kegiatans}
+                                    onChange={(e) =>
+                                      updateActivities(
+                                        faseIndex,
+                                        kegIndex,
+                                        "nama_kegiatans",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="flex-1 bg-transparent border-none font-bold text-gray-700 placeholder-gray-400 focus:ring-0 text-sm"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      removeActivitiesFromFase(
+                                        faseIndex,
+                                        kegIndex,
+                                      )
+                                    }
+                                    className="text-red-400 hover:text-red-600"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
                                 </div>
                               ))}
                             </div>

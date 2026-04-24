@@ -200,10 +200,10 @@ const CreateHO = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label
+                    {/* <Label
                       text="Nomor WhatsApp"
                       className="!text-[9px] text-[#1E5AA5] uppercase tracking-widest"
-                    />
+                    /> */}
                     {/* <div className="relative">
                       <Input
                         name="no_telp"

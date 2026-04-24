@@ -120,7 +120,7 @@ function CreateAssessmentNonAkademik() {
     const payload = {
       id_ho: Number(selectedHo),
       nama: namaAssessment.trim(),
-      id_sekolah: Number(selectedSekolah),
+      target_sekolah_ids: [Number(selectedSekolah)],
       tenggat: tenggat,
       questions: questions.map((q) => ({
         question: q.question.trim(),

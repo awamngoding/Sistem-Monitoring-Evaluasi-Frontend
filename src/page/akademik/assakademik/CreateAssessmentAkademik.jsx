@@ -102,7 +102,7 @@ function CreateAssessmentAkademik() {
     const payload = {
       id_ho: Number(selectedHo),
       nama: namaAssessment.trim(),
-      id_sekolah: Number(selectedSekolah),
+      target_sekolah_ids: [Number(selectedSekolah)],
       tenggat: tenggat,
       jenis: "akademik",
       questions: questions.map((q) => ({
