@@ -5,6 +5,7 @@ export default function Input({
   value,
   onChange,
   className = "",
+  ...props // <--- Ini untuk menangkap prop tambahan seperti 'readOnly' atau 'name'
 }) {
   return (
     <input
@@ -12,17 +13,24 @@ export default function Input({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
+      {...props} // <--- Ini untuk menyalurkan prop tersebut ke tag input asli
       className={`
         w-full
-        px-3 py-2
-        border border-gray-300
-        rounded-lg
-        text-sm
-        focus:outline-none
-        focus:ring-2
-        focus:ring-[#2E5AA7]/30
-        focus:border-[#2E5AA7]
-        transition
+        px-4 py-2.5
+        bg-white hover:bg-gray-50/50
+        border border-gray-200
+        rounded-xl
+        text-[13px] font-medium text-gray-700
+        placeholder:text-gray-400 placeholder:font-normal
+        shadow-sm shadow-gray-200/50
+        outline-none
+        transition-all duration-200
+        focus:bg-white
+        focus:border-[#1E5AA5]
+        focus:ring-[3px]
+        focus:ring-[#1E5AA5]/10
+        disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200 disabled:shadow-none disabled:cursor-not-allowed
+        read-only:bg-gray-50 read-only:text-gray-500 read-only:focus:ring-0 read-only:focus:border-gray-200
         ${className}
       `}
     />

@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
 import logo_ypamdr from "../assets/img/logo_ypamdr.png";
+import simbo_catur_dharma from "../assets/img/simbo_catur_dharma.png";
 import {
   Mail,
   Phone,
@@ -8,170 +9,175 @@ import {
   Facebook,
   Instagram,
   Youtube,
+  ChevronRight,
+  ArrowUp,
 } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#0a5ea8] text-white">
-      <div className="container mx-auto px-6 py-12">
-        {/* Logo Section */}
-        <div className="mb-12">
-          <div className="relative inline-block">
-            {/* Logo Image */}
-            <div className="w-56 h-auto mb-4">
-              <img
-                src={logo_ypamdr}
-                alt="YPA-MDR Logo"
-                className="w-full h-full object-contain"
-              />
+    <footer className="relative bg-[#1E5AA5] text-white border-t border-white/10 mt-auto overflow-hidden font-sans">
+      {/* SLOT IMAGE KANAN ATAS - Diperkecil & Diturunkan posisinya */}
+      <div className="absolute top-0 right-0 w-[300px] md:w-[400px] h-full pointer-events-none select-none z-0">
+        <img
+          src={simbo_catur_dharma}
+          alt="Catur Dharma Astra"
+          // opacity dipertahankan 40 agar jelas, object-right-bottom agar menempel pojok
+          className="w-full h-full object-contain object-right-bottom opacity-40 transform translate-x-16 translate-y-20"
+        />
+      </div>
+
+      {/* Konten Utama */}
+      <div className="relative z-10 container mx-auto px-6 lg:px-12 pt-24 pb-12 max-w-7xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16 mb-16">
+          {/* Section 1: Brand & Social */}
+          <div className="lg:col-span-4 space-y-8">
+            <img
+              src={logo_ypamdr}
+              alt="Logo YPA-MDR"
+              className="w-36 h-auto brightness-0 invert opacity-100 shadow-sm"
+            />
+            <p className="text-white/80 text-[14px] leading-relaxed max-w-sm font-medium">
+              Membangun masa depan bangsa melalui pendidikan berkualitas di
+              daerah tertinggal untuk mewujudkan masyarakat mandiri yang
+              berkelanjutan.
+            </p>
+            <div className="flex gap-4">
+              {[Facebook, Instagram, Youtube].map((Icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white hover:text-[#1E5AA5] transition-all duration-300 group shadow-lg"
+                >
+                  <Icon
+                    size={20}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                </a>
+              ))}
             </div>
-
-            
           </div>
-        </div>
 
-        {/* Main Grid - 3 Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
-          {/* Programs Column */}
-          <div>
-            <h3 className="font-semibold text-lg mb-5">Program</h3>
-            <ul className="space-y-3 underline">
-              {[
-                "Beasiswa Pendidikan",
-                "Pelatihan Guru",
-                "Infrastruktur Sekolah",
-                "Literasi Digital",
-                "Pemberdayaan Masyarakat",
-              ].map((item, index) => (
-                <li key={index}>
-                  <a
-                    href="#"
-                    className="text-white/80 hover:text-white transition-colors text-sm block py-1.5"
-                  >
-                    {item}
-                  </a>
-                </li>
-              ))}
+          {/* Section 2: Program */}
+          <div className="lg:col-span-2">
+            <h4 className="text-[12px] font-black tracking-[0.25em] uppercase mb-8 text-white/50 border-l-2 border-blue-300 pl-3">
+              Program
+            </h4>
+            <ul className="space-y-5">
+              {["Pendidikan", "Kesehatan", "Ekonomi", "Lingkungan"].map(
+                (item, i) => (
+                  <li key={i}>
+                    <a
+                      href="#"
+                      className="text-white/70 hover:text-white transition-all text-[14px] flex items-center group font-bold"
+                    >
+                      <span className="w-0 group-hover:w-4 h-px bg-blue-300 mr-0 group-hover:mr-3 transition-all duration-300" />
+                      {item}
+                    </a>
+                  </li>
+                ),
+              )}
             </ul>
           </div>
 
-          {/* Quick Links Column */}
-          <div>
-            <h3 className="font-semibold text-lg mb-5">Tautan Cepat</h3>
-            <ul className="space-y-3 underline">
-              {[
-                "Tentang Kami",
-                "Berita & Artikel",
-                "Galeri",
-                "Publikasi",
-                "Karir",
-                "FAQ",
-              ].map((item, index) => (
-                <li key={index}>
-                  <a
-                    href="#"
-                    className="text-white/80 hover:text-white transition-colors text-sm block py-1.5"
-                  >
-                    {item}
-                  </a>
-                </li>
-              ))}
+          {/* Section 3: Navigasi */}
+          <div className="lg:col-span-2">
+            <h4 className="text-[12px] font-black tracking-[0.25em] uppercase mb-8 text-white/50 border-l-2 border-blue-300 pl-3">
+              Navigasi
+            </h4>
+            <ul className="space-y-5">
+              {["Tentang Kami", "Berita & Artikel", "Galeri", "Kontak"].map(
+                (item, i) => (
+                  <li key={i}>
+                    <a
+                      href="#"
+                      className="text-white/70 hover:text-white transition-all text-[14px] flex items-center group font-bold"
+                    >
+                      <span className="w-0 group-hover:w-4 h-px bg-blue-300 mr-0 group-hover:mr-3 transition-all duration-300" />
+                      {item}
+                    </a>
+                  </li>
+                ),
+              )}
             </ul>
           </div>
 
-          {/* Contact Info Column */}
-          <div>
-            <h3 className="font-semibold text-lg mb-5">Kontak</h3>
-
-            <div className="space-y-5 underline">
-              {/* Address */}
-              <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 flex-shrink-0" size={18} />
-                <p className="text-white/80 text-sm leading-relaxed">
-                  Gedung B, AMDI Lantai 5<br />
-                  Jl. Gaya Motor Raya No.8
-                  <br />
-                  Jakarta Utara 14330
-                </p>
+          {/* Section 4: Kontak */}
+          <div className="lg:col-span-4">
+            <h4 className="text-[12px] font-black tracking-[0.25em] uppercase mb-8 text-white/50 border-l-2 border-blue-300 pl-3">
+              Hubungi Kami
+            </h4>
+            <div className="space-y-6">
+              <div className="flex gap-5 items-start">
+                <MapPin size={22} className="text-blue-300 shrink-0 mt-1" />
+                <div className="text-[14px] text-white/80 leading-relaxed font-semibold">
+                  <span className="text-white block mb-1 uppercase tracking-wider font-black">
+                    Gedung B, AMDI Lt. 5
+                  </span>
+                  Jl. Gaya Motor Raya No. 8, Jakarta Utara 14330
+                </div>
               </div>
-
-              {/* Phone */}
-              <div className="flex items-center gap-3">
-                <Phone size={18} />
+              <div className="flex items-center gap-5">
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                  <Phone size={18} className="text-blue-300" />
+                </div>
                 <a
                   href="tel:0216522555"
-                  className="text-white/80 hover:text-white transition-colors text-sm"
+                  className="text-[15px] text-white hover:text-blue-200 font-black tracking-tight transition-colors"
                 >
                   (021) 6522-5555
                 </a>
               </div>
-
-              {/* Email */}
-              <div className="flex items-center gap-3">
-                <Mail size={18} />
+              <div className="flex items-center gap-5">
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                  <Mail size={18} className="text-blue-300" />
+                </div>
                 <a
                   href="mailto:ypamdr@gmail.com"
-                  className="text-white/80 hover:text-white transition-colors text-sm"
+                  className="text-[15px] text-white hover:text-blue-200 font-black tracking-tight transition-colors"
                 >
                   ypamdr@gmail.com
                 </a>
-              </div>
-
-              {/* Social Media */}
-              <div className="pt-2">
-                <div className="flex gap-3">
-                  <a
-                    href="#"
-                    className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-white/20 transition-all duration-300"
-                  >
-                    <Facebook size={16} className="text-[#1877F2]" />
-                  </a>
-
-                  <a
-                    href="#"
-                    className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-white/20 transition-all duration-300"
-                  >
-                    <Instagram size={16} className="text-[#E4405F]" />
-                  </a>
-
-                  <a
-                    href="#"
-                    className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-white/20 transition-all duration-300"
-                  >
-                    <Youtube size={16} className="text-[#FF0000]" />
-                  </a>
-                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="h-px bg-white/20 mb-8"></div>
-
-        {/* Bottom Section */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-center md:text-left">
-            <p className="text-white/60 text-sm">
-              © {currentYear} Yayasan Pendidikan Astra Michael D. Ruslim
+        {/* Bottom Bar */}
+        <div className="pt-10 border-t border-white/20 flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex flex-col items-center md:items-start gap-2">
+            <p className="text-white/40 text-[11px] font-black tracking-[0.2em] uppercase">
+              © {currentYear} YPA-MDR. All Rights Reserved.
             </p>
-            <p className="text-white/40 text-xs mt-1.5">
-              Terdaftar di Kementerian Hukum dan HAM RI
-            </p>
+            <div className="flex items-center gap-3 text-[11px] text-blue-300/50 font-black uppercase italic tracking-widest">
+              <span>Member of Astra</span>
+              <span className="w-1.5 h-1.5 bg-white/20 rounded-full" />
+              <span>Catur Dharma Astra</span>
+            </div>
           </div>
 
-          <div className="flex gap-8">
-            {["Kebijakan Privasi", "Syarat & Ketentuan"].map((item, index) => (
-              <a
-                key={index}
-                href="#"
-                className="text-white/60 hover:text-white transition-colors text-sm"
-              >
-                {item}
-              </a>
-            ))}
+          <div className="flex items-center gap-10">
+            <div className="flex gap-8">
+              {["Privasi", "Syarat"].map((item, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="text-white/40 hover:text-white transition-all text-[12px] font-black uppercase tracking-[0.2em]"
+                >
+                  {item}
+                </a>
+              ))}
+            </div>
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="w-12 h-12 rounded-2xl border-2 border-white/10 bg-white/5 hover:bg-white/20 flex items-center justify-center transition-all shadow-2xl group"
+            >
+              <ArrowUp
+                size={20}
+                className="group-hover:-translate-y-1 transition-transform"
+              />
+            </button>
           </div>
         </div>
       </div>

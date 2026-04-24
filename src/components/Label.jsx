@@ -10,10 +10,13 @@ export default function Label({
       htmlFor={htmlFor}
       className={`
         block
-        text-sm
-        font-medium
-        text-gray-700
-        mb-1
+        text-[10px] 
+        font-black 
+        text-gray-400 
+        uppercase 
+        tracking-widest 
+        mb-2 
+        ml-1
         ${className}
       `}
     >

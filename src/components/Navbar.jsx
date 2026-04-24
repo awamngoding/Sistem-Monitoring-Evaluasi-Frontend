@@ -10,6 +10,9 @@ const Navbar = ({
   showBack = false,
   showProfile = false,
   isDashboard = false,
+  // 👇 INI KUNCINYA: Harus didefinisikan di sini dengan nilai default
+  searchValue = "",
+  onSearchChange = () => { },
 }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,10 +35,8 @@ const Navbar = ({
       >
         <div className="max-w-[1600px] mx-auto px-10">
           <div className="flex items-center justify-between h-24">
-
             {/* ================= LEFT ================= */}
             <div className="flex items-center gap-6">
-
               {/* BACK BUTTON */}
               {showBack && (
                 <button
@@ -73,30 +74,28 @@ const Navbar = ({
             {/* ================= RIGHT (DASHBOARD ONLY) ================= */}
             {isDashboard && (
               <div className="hidden md:flex items-center gap-4">
-
-                {/* SEARCH */}
+                {/* SEARCH BAR (DESKTOP) */}
                 <div className="relative">
                   <Search
                     size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-[#F7F8F0]"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
                   />
                   <input
                     type="text"
-                    placeholder="Cari ..."
+                    placeholder="Cari..."
+                    // 👇 Dipasang di sini biar gak Read-Only
+                    value={searchValue}
+                    onChange={onSearchChange}
                     className="w-52 pl-11 pr-4 py-2.5 bg-white rounded-2xl
-                    focus:outline-none focus:ring-2 focus:ring-white/40
+                    focus:outline-none focus:ring-2 focus:ring-[#1E5AA5]/40 border border-gray-200
                     text-sm text-gray-800 transition-all duration-300
-                    focus:w-60"
+                    focus:w-64"
                   />
                 </div>
 
                 {/* NOTIFICATION */}
                 <button className="relative p-2.5 bg-white rounded-xl shadow-sm hover:shadow-md transition">
-                  <Bell
-                    stroke="#d4af37"
-                    fill="#d4af37"
-                    className="w-5 h-5"
-                  />
+                  <Bell stroke="#d4af37" fill="#d4af37" className="w-5 h-5" />
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white">
                     3
                   </span>
@@ -144,7 +143,7 @@ const Navbar = ({
             {/* ================= MOBILE BUTTON ================= */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-white"
+              className="md:hidden text-gray-800"
             >
               {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
             </button>
@@ -152,22 +151,30 @@ const Navbar = ({
 
           {/* ================= MOBILE MENU ================= */}
           {isMenuOpen && (
-            <div className="md:hidden pb-6 space-y-4 text-white border-t border-white/20 pt-4">
-
+            <div className="md:hidden pb-6 space-y-4 text-gray-800 border-t border-gray-200 pt-4">
               {extraMenu && (
                 <div className="flex flex-col gap-3">{extraMenu}</div>
               )}
 
-              <input
-                type="text"
-                placeholder="Cari..."
-                className="w-full px-4 py-2.5 rounded-xl text-gray-800"
-              />
+              {/* SEARCH BAR (MOBILE) */}
+              <div className="relative">
+                <Search
+                  size={18}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+                <input
+                  type="text"
+                  placeholder="Cari..."
+                  value={searchValue}
+                  onChange={onSearchChange}
+                  className="w-full pl-11 pr-4 py-2.5 rounded-xl text-gray-800 border border-gray-200"
+                />
+              </div>
 
               {!showProfile && (
                 <button
                   onClick={() => navigate("/login")}
-                  className="w-full py-2.5 bg-white text-[#48A111] rounded-xl font-medium"
+                  className="w-full py-2.5 bg-[#16a34a] text-white rounded-xl font-medium"
                 >
                   Masuk
                 </button>

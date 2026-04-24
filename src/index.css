@@ -1,13 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 /* ✅ Fade + Slide masuk */
@@ -114,7 +112,7 @@ body {
 }
 
 .btn-hover-effect::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -123,7 +121,9 @@ body {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  transition: width 0.3s, height 0.3s;
+  transition:
+    width 0.3s,
+    height 0.3s;
 }
 
 .btn-hover-effect:hover::after {
@@ -133,7 +133,9 @@ body {
 
 /* Card hover effects */
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .card-hover:hover {
@@ -145,11 +147,14 @@ body {
 
 /* Smooth transitions */
 * {
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 /* Input focus effects */
-input:focus, button:focus {
+input:focus,
+button:focus {
   outline: none;
   ring: 2px;
 }
@@ -161,7 +166,7 @@ input:focus, button:focus {
 }
 
 .btn-hover::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -170,7 +175,9 @@ input:focus, button:focus {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
 }
 
 .btn-hover:hover::before {
@@ -180,7 +187,9 @@ input:focus, button:focus {
 
 /* Card hover effects */
 .pillar-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .pillar-card:hover {
@@ -199,15 +208,20 @@ input:focus, button:focus {
 }
 
 @keyframes gradient {
-  0% { background-position: 0% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 /* styles/globals.css */
 
 /* Floating animation for background elements */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
   50% {
@@ -221,16 +235,17 @@ input:focus, button:focus {
 }
 
 .input-glow:focus {
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3),
-              0 0 20px rgba(59, 130, 246, 0.1);
+  box-shadow:
+    0 0 0 2px rgba(59, 130, 246, 0.3),
+    0 0 20px rgba(59, 130, 246, 0.1);
 }
 
 /* Gradient border animation */
 .gradient-border {
   position: relative;
   border: double 2px transparent;
-  background-image: linear-gradient(black, black), 
-                    linear-gradient(90deg, #3b82f6, #8b5cf6);
+  background-image:
+    linear-gradient(black, black), linear-gradient(90deg, #3b82f6, #8b5cf6);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   animation: border-animation 3s linear infinite;
@@ -238,16 +253,16 @@ input:focus, button:focus {
 
 @keyframes border-animation {
   0% {
-    background-image: linear-gradient(black, black), 
-                      linear-gradient(90deg, #3b82f6, #8b5cf6);
+    background-image:
+      linear-gradient(black, black), linear-gradient(90deg, #3b82f6, #8b5cf6);
   }
   50% {
-    background-image: linear-gradient(black, black), 
-                      linear-gradient(90deg, #8b5cf6, #3b82f6);
+    background-image:
+      linear-gradient(black, black), linear-gradient(90deg, #8b5cf6, #3b82f6);
   }
   100% {
-    background-image: linear-gradient(black, black), 
-                      linear-gradient(90deg, #3b82f6, #8b5cf6);
+    background-image:
+      linear-gradient(black, black), linear-gradient(90deg, #3b82f6, #8b5cf6);
   }
 }
 
@@ -258,7 +273,7 @@ input:focus, button:focus {
 }
 
 .btn-shine::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -50%;
@@ -289,7 +304,8 @@ input:focus, button:focus {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -322,41 +338,87 @@ html {
 
 /* ================= ANIMATIONS ================= */
 @keyframes blob {
-  0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0px, 0px) scale(1); }
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-40px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(40px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes scrollDot {
-  0% { transform: translate(-50%, 0); opacity: 1; }
-  70% { transform: translate(-50%, 40px); opacity: 0; }
-  100% { transform: translate(-50%, 0); opacity: 0; }
+  0% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+  70% {
+    transform: translate(-50%, 40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, 0);
+    opacity: 0;
+  }
 }
 
 @keyframes bounceSlow {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 /* ================= UTILITY CLASSES ================= */
@@ -398,7 +460,7 @@ html {
 
 /* Grid Pattern Background */
 .bg-grid-pattern {
-  background-image: 
+  background-image:
     linear-gradient(to right, #f0f9ff 1px, transparent 1px),
     linear-gradient(to bottom, #f0f9ff 1px, transparent 1px);
   background-size: 50px 50px;
@@ -406,8 +468,8 @@ html {
 
 /* Hide scrollbar but allow scrolling */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -465,12 +527,16 @@ html {
 
 /* Smooth transitions */
 * {
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 /* Filter blur for Tailwind */
 .filter {
-  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast)
+    var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate)
+    var(--tw-sepia) var(--tw-drop-shadow);
 }
 
 /* Hide Scrollbar */
@@ -479,6 +545,25 @@ html {
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none; /* IE */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Custom styling biar FullCalendar nyatu sama tema YPA-MDR */
+.fc {
+  font-family: "Inter", sans-serif !important;
+  --fc-border-color: #f1f5f9 !important;
+  --fc-button-bg-color: #1e5aa5 !important;
+  --fc-button-border-color: #1e5aa5 !important;
+  --fc-today-bg-color: #f0f7ff !important;
+}
+
+.fc .fc-toolbar-title {
+  font-weight: 800 !important;
+  color: #1e293b !important;
+  font-size: 1.25rem !important;
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: #94a3b8 !important;
 }
